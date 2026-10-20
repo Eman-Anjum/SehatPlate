@@ -1,22 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import pkg from 'pg';
-const { Pool } = pkg;
+import { pool } from './db.js';
+import authRouter, { requireAuth } from './auth.js';
 
-// Validate DATABASE_URL scheme before anything else
-if (!process.env.DATABASE_URL) {
-  console.error('Error: DATABASE_URL is not set. Add it in the Secrets panel.');
+if (!process.env.SESSION_SECRET) {
+  console.error('Error: SESSION_SECRET is not set. Add it in the Secrets panel.');
   process.exit(1);
 }
-
-const urlScheme = process.env.DATABASE_URL.split(':')[0];
-if (urlScheme !== 'postgresql' && urlScheme !== 'postgres') {
-  console.error(`Unsupported database scheme: ${urlScheme}. Expected postgres:// or postgresql://.`);
-  process.exit(1);
-}
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
 
 const app = express();
 
@@ -38,9 +29,22 @@ app.get('/health', async (req, res) => {
   res.json({ status: 'ok', db: dbOk });
 });
 
+// Auth routes — register + login both live in authRouter
+app.use('/auth', authRouter);
+app.get('/me', requireAuth, async (req, res) => {
+  const result = await pool.query(
+    'SELECT id, email, totp_enabled FROM users WHERE id = $1',
+    [req.userId]
+  );
+  if (result.rows.length === 0) {
+    return res.status(404).json({ detail: 'User not found' });
+  }
+  return res.json(result.rows[0]);
+});
+
 // JSON error handler
 app.use((err, req, res, _next) => {
-  const status = err.status || err.statusCode || 400;
+  const status = err.status || err.statusCode || 500;
   res.status(status).json({ detail: err.message || 'Unknown error' });
 });
 

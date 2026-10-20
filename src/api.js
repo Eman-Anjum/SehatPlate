@@ -1,13 +1,73 @@
-// Base URL: use VITE_API_URL if set (for external deploys), otherwise relative
-// so Vite's dev proxy forwards /health and /api/* to Express on port 3001.
 const BASE = import.meta.env.VITE_API_URL || '';
+
+let accessToken = null;
+
+export function setAccessToken(token) {
+  accessToken = token;
+}
+
+export function getAccessToken() {
+  return accessToken;
+}
+
+export function clearAccessToken() {
+  accessToken = null;
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers,
+  });
+
+  const data = res.headers.get('content-type')?.includes('application/json')
+    ? await res.json()
+    : null;
+
+  if (!res.ok) {
+    const error = new Error(data?.detail || `HTTP ${res.status}`);
+    error.status = res.status;
+    error.data = data;
+    throw error;
+  }
+
+  return data;
+}
 
 export async function getHealth() {
   try {
-    const res = await fetch(`${BASE}/health`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
+    return await apiFetch('/health', { method: 'GET' });
   } catch (err) {
     return { status: 'error', detail: err.message };
   }
+}
+
+export async function registerUser({ email, password }) {
+  return apiFetch('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function loginUser({ email, password }) {
+  const data = await apiFetch('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  });
+  if (data.access_token) {
+    setAccessToken(data.access_token);
+  }
+  return data;
+}
+
+export async function getMe() {
+  return apiFetch('/me', { method: 'GET' });
 }

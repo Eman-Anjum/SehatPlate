@@ -21,36 +21,10 @@ verdict (Safe / Moderation / Avoid) with reason, swaps, and disclaimer.
 - `package.json` — dev script runs server (node --watch) + vite concurrently
 - `.env.example` — all secrets from agent.md except DATABASE_URL and SESSION_SECRET
 
-## Next modules
-- Module 2: Auth (register, login, JWT, bcryptjs)
-- Module 3: 2FA (TOTP + recovery codes)
-- Module 4: Dish identify endpoint (Groq vision)
-- Module 5: Follow-up questions + verdict logic
-- Module 6: History page
+## Done — Module 2
+- `server/register.js` — POST /auth/register (Zod validation, bcryptjs password hash, lowercased/unique email)
 
-## File map
-| Path | Purpose |
-|------|---------|
-| `server/index.js` | Express entry, health endpoint |
-| `src/App.jsx` | React root page |
-| `src/api.js` | Client fetch helpers |
-| `src/main.jsx` | React DOM entry |
-| `index.html` | Vite HTML shell |
-| `vite.config.js` | Vite + React plugin + proxy |
-| `package.json` | Scripts and deps |
-| `db/migrations/001_init.sql` | Schema reference |
-| `.env.example` | Secret names (no values) |
-| `SUMMARY.md` | This file |
-
-## Gotchas
-- Express on port 3001 (`API_PORT`); Vite on 5173. Vite proxy bridges them in dev.
-- `FRONTEND_ORIGIN` must be set for CORS to allow browser requests in production.
-- `DATABASE_URL` scheme is validated at startup; non-postgres → process exits.
-- package.json needs "type": "module".
-- Express API runs on port 3001; Vite on 5173 proxies /health, /api, /auth, /me to it.
-- Do NOT set the VITE_API_URL secret. The client uses relative URLs. The platform's
-  "needs VITE_API_URL" banner can be ignored.
-- Preview needs vite --host (already set in vite.config.js).
-
-## Known bugs
-- None
+## Done — Module 3 (Phase 3)
+- `server/auth.js` — POST /auth/login: Zod validation, email normalization, bcryptjs credential check, JWT HS256 issuance (sub=user.id, exp=JWT_EXPIRE_MINUTES default 60); 200 {access_token} on success, 401 {detail:"Invalid email or password"} on bad credentials, 500 on DB error
+- `server/index.js` — removed duplicate registerRouter mount; authRouter now handles both /auth/register and /auth/login
+- `requireAuth` exported from auth.js for use in later phases (Bearer token, HS256 verify)
