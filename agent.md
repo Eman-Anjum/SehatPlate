@@ -12,6 +12,9 @@
 - After each task: update SUMMARY.md, then reply in max 3 lines:
   what changed / files / how to test. If unclear, ask ONE short question.
 - Output only new or changed files. No explanations.
+   - package.json must keep "type": "module". Never set the VITE_API_URL secret;
+     the client uses relative URLs only (via src/api.js).
+   - Every new top-level API route prefix (/auth, /me, /dish, /verdict, /history)
 
 ## Project
 SehatPlate: AI food guide for Pakistani dishes. User uploads a photo or types a
