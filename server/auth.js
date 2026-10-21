@@ -19,10 +19,10 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-function issueToken(userId) {
-  return jwt.sign({ sub: userId }, JWT_SECRET, {
+export function issueToken(userId, options = {}) {
+  return jwt.sign({ sub: userId, ...(options.payload || {}) }, JWT_SECRET, {
     algorithm: 'HS256',
-    expiresIn: `${JWT_EXPIRE_MINUTES}m`,
+    expiresIn: options.expiresIn || `${JWT_EXPIRE_MINUTES}m`,
   });
 }
 
@@ -64,13 +64,21 @@ router.post('/login', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, email, password_hash FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, totp_enabled FROM users WHERE email = $1',
       [normalizedEmail]
     );
 
     const user = result.rows[0];
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return res.status(401).json({ detail: 'Invalid email or password' });
+    }
+
+    if (user.totp_enabled) {
+      const tempToken = issueToken(user.id, {
+        payload: { typ: '2fa' },
+        expiresIn: '5m',
+      });
+      return res.status(200).json({ requires_2fa: true, temp_token: tempToken });
     }
 
     const accessToken = issueToken(user.id);
@@ -93,6 +101,9 @@ export function requireAuth(req, res, next) {
   }
   try {
     const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
+    if (decoded.typ === '2fa') {
+      return res.status(401).json({ detail: 'Invalid or expired token' });
+    }
     req.userId = decoded.sub;
     return next();
   } catch (_) {

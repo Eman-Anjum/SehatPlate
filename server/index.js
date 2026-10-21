@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { pool } from './db.js';
 import authRouter, { requireAuth } from './auth.js';
+import twofaRouter from './twofa.js';
 
 if (!process.env.SESSION_SECRET) {
   console.error('Error: SESSION_SECRET is not set. Add it in the Secrets panel.');
@@ -31,6 +32,7 @@ app.get('/health', async (req, res) => {
 
 // Auth routes
 app.use('/auth', authRouter);
+app.use('/auth', twofaRouter);
 app.get('/me', requireAuth, async (req, res) => {
   const result = await pool.query(
     'SELECT id, email, totp_enabled FROM users WHERE id = $1',
