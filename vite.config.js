@@ -12,6 +12,7 @@ export default defineConfig({
       '/health': 'http://localhost:3001',
       '/auth': 'http://localhost:3001',
       '/me': 'http://localhost:3001',
+      '/dish': 'http://localhost:3001',
     },
   },
 });

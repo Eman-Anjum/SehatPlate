@@ -1,9 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { pool } from './db.js';
 import authRouter, { requireAuth } from './auth.js';
 import twofaRouter from './twofa.js';
+import dishRouter from './dish.js';
 
 if (!process.env.SESSION_SECRET) {
   console.error('Error: SESSION_SECRET is not set. Add it in the Secrets panel.');
@@ -12,11 +14,24 @@ if (!process.env.SESSION_SECRET) {
 
 const app = express();
 
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(express.json());
 
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || '';
 app.use(cors({ origin: FRONTEND_ORIGIN || false }));
+
+// Rate limiter: 20 requests per 15 minutes per IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Too many requests, please try again later.',
+  standardHeaders: false,
+  skip: (req) => {
+    // Skip non-auth endpoints
+    return !req.path.startsWith('/auth');
+  },
+});
 
 // Health check
 app.get('/health', async (req, res) => {
@@ -31,17 +46,29 @@ app.get('/health', async (req, res) => {
 });
 
 // Auth routes
-app.use('/auth', authRouter);
+app.use('/auth', limiter, authRouter);
 app.use('/auth', twofaRouter);
 app.get('/me', requireAuth, async (req, res) => {
-  const result = await pool.query(
-    'SELECT id, email, totp_enabled FROM users WHERE id = $1',
-    [req.userId]
-  );
-  if (result.rows.length === 0) {
-    return res.status(404).json({ detail: 'User not found' });
+  try {
+    const result = await pool.query(
+      'SELECT id, email, totp_enabled FROM users WHERE id = $1',
+      [req.userId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ detail: 'User not found' });
+    }
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error('/me error:', err.message);
+    return res.status(500).json({ detail: 'Failed to fetch user' });
   }
-  return res.json(result.rows[0]);
+});
+
+app.use('/dish', dishRouter);
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ detail: 'Not found' });
 });
 
 // JSON error handler
