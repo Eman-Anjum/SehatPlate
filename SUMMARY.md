@@ -14,7 +14,9 @@ verdict (Safe / Moderation / Avoid) with reason, swaps, and disclaimer.
 ## Done
 - Module 1: scaffold, /health, users + scans tables.
 - Module 2: register, login, requireAuth, GET /me, login page (verified).
+- Vite proxy configuration: /auth and /me proxied to Express alongside /api and /health.
 - Module 3a (2FA backend) done: POST /auth/2fa/setup, /auth/2fa/verify, /auth/2fa/login; TOTP + 8 hashed recovery codes; temp_token flow.
+- Module 3b (2FA frontend) done.
 ## NOT built yet
 - dish rules, Groq, verdict, scan UI, history.
 ## Gotchas

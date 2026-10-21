@@ -19,7 +19,7 @@ async function apiFetch(path, options = {}) {
     'Content-Type': 'application/json',
     ...options.headers,
   };
-    let url = `${BASE}${path}`;
+  let url = `${BASE}${path}`;
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
     url += (url.includes('?') ? '&' : '?') + 'access_token=' + encodeURIComponent(accessToken);
@@ -68,6 +68,28 @@ export async function loginUser({ email, password }) {
     setAccessToken(data.access_token);
   }
   return data;
+}
+
+export async function login2fa({ temp_token, code, recovery_code }) {
+  const data = await apiFetch('/auth/2fa/login', {
+    method: 'POST',
+    body: JSON.stringify({ temp_token, code, recovery_code }),
+  });
+  if (data.access_token) {
+    setAccessToken(data.access_token);
+  }
+  return data;
+}
+
+export async function setup2fa() {
+  return apiFetch('/auth/2fa/setup', { method: 'POST' });
+}
+
+export async function verify2fa(code) {
+  return apiFetch('/auth/2fa/verify', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
 }
 
 export async function getMe() {
