@@ -1,0 +1,352 @@
+{
+  "meta": {
+    "version": 1,
+    "reviewed_by_clinician": false,
+    "note": "Conservative draft for a prototype. Not reviewed by a doctor or dietitian. General guidance only."
+  },
+  "verdict_order": ["Safe", "Moderation", "Avoid"],
+  "principles": {
+    "diabetes": "Limit sugary drinks and added sugar, watch portions of refined carbohydrate such as white rice, naan and sweets, and prefer high-fibre foods.",
+    "kidney_disease": "Limit salt. Potassium and phosphorus limits depend on the stage and lab results, so stay conservative and advise a kidney dietitian.",
+    "high_blood_pressure": "Keep salt low (WHO: under 5 g salt, about 2 g sodium, a day), go easy on salty restaurant gravies, pickles and fried snacks, and limit saturated fat."
+  },
+  "common_questions": [
+    {"id": "freq", "text": "How often do you eat this?", "options": [
+      {"id": "rarely", "label": "Rarely (a few times a month)"},
+      {"id": "weekly", "label": "About once a week"},
+      {"id": "daily", "label": "Most days"}
+    ]}
+  ],
+  "common_escalations": [
+    {"if": {"q": "freq", "a": "daily"}, "min_verdict": "Moderation"}
+  ],
+  "dishes": [
+    {
+      "id": "chicken_biryani",
+      "name": "Chicken Biryani",
+      "aliases": ["biryani", "chicken biryani", "biriyani", "murgh biryani", "karachi biryani"],
+      "questions": [
+        {"id": "portion", "text": "How big is your portion?", "options": [
+          {"id": "small", "label": "Small (about 1 cup of rice)"},
+          {"id": "medium", "label": "Medium plate"},
+          {"id": "large", "label": "Large plate or more"}]},
+        {"id": "oil", "text": "How oily is it?", "conditions": ["diabetes", "high_blood_pressure"], "options": [
+          {"id": "light", "label": "Light"},
+          {"id": "medium", "label": "Medium"},
+          {"id": "very", "label": "Very oily"}]},
+        {"id": "potato", "text": "Does it have potatoes?", "conditions": ["kidney_disease"], "options": [
+          {"id": "yes", "label": "Yes"},
+          {"id": "no", "label": "No"},
+          {"id": "not_sure", "label": "Not sure"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": "Moderation",
+          "reason": "A big plate of white rice raises blood sugar quickly and the oil adds extra calories.",
+          "swaps": ["Take a small portion (about 1 cup of rice)", "Eat more chicken and less rice", "Add cucumber and tomato salad, and plain raita without sugar"],
+          "escalations": [{"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]},
+        "kidney_disease": {"min_verdict": "Moderation",
+          "reason": "Biryani is usually salty, and potatoes and tomato masala can be high in potassium.",
+          "swaps": ["Ask for less salt", "Skip the potatoes", "Keep the portion small", "Add cucumber salad"],
+          "escalations": [{"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]},
+        "high_blood_pressure": {"min_verdict": "Moderation",
+          "reason": "Restaurant biryani is usually high in salt and oil.",
+          "swaps": ["Ask for less salt and less oil", "Keep the portion small", "Skip pickles and salty chutney", "Add a fresh salad"],
+          "escalations": [{"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}, {"if": {"q": "oil", "a": "very"}, "min_verdict": "Avoid"}]}
+      }
+    },
+    {
+      "id": "nihari",
+      "name": "Nihari",
+      "aliases": ["nihari", "beef nihari", "nahari", "mutton nihari"],
+      "questions": [
+        {"id": "portion", "text": "How big is your portion?", "options": [
+          {"id": "small", "label": "Small bowl"},
+          {"id": "medium", "label": "Medium bowl"},
+          {"id": "large", "label": "Large bowl or more"}]},
+        {"id": "naan", "text": "How many naan or rotis do you eat with it?", "conditions": ["diabetes"], "options": [
+          {"id": "none", "label": "None"},
+          {"id": "one", "label": "One"},
+          {"id": "two_plus", "label": "Two or more"}]},
+        {"id": "source", "text": "Where is it from?", "conditions": ["kidney_disease", "high_blood_pressure"], "options": [
+          {"id": "restaurant", "label": "Restaurant or street stall"},
+          {"id": "home_less_salt", "label": "Home-made with little salt"},
+          {"id": "not_sure", "label": "Not sure"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": "Moderation",
+          "reason": "The naan adds a lot of refined carbohydrate and the gravy is rich in fat.",
+          "swaps": ["Have one roti instead of naan", "Take a smaller portion of gravy", "Add a salad"],
+          "escalations": [{"if": {"q": "naan", "a": "two_plus"}, "min_verdict": "Avoid"}]},
+        "kidney_disease": {"min_verdict": "Moderation",
+          "reason": "The gravy is very salty and rich, and big meat portions add extra protein and phosphorus.",
+          "swaps": ["Make it at home with little salt", "Eat a small portion with less gravy", "Skip the bone marrow"],
+          "escalations": [{"if": {"q": "source", "a": "restaurant"}, "min_verdict": "Avoid"}, {"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]},
+        "high_blood_pressure": {"min_verdict": "Moderation",
+          "reason": "Nihari is usually very high in salt and saturated fat.",
+          "swaps": ["Make it at home with less salt and less oil", "Small portion with less gravy", "Skip salty pickles on the side"],
+          "escalations": [{"if": {"q": "source", "a": "restaurant"}, "min_verdict": "Avoid"}, {"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]}
+      }
+    },
+    {
+      "id": "haleem",
+      "name": "Haleem",
+      "aliases": ["haleem", "daleem", "chicken haleem", "beef haleem"],
+      "questions": [
+        {"id": "portion", "text": "How big is your portion?", "options": [
+          {"id": "small", "label": "Small bowl"},
+          {"id": "medium", "label": "Medium bowl"},
+          {"id": "large", "label": "Large bowl or more"}]},
+        {"id": "source", "text": "Where is it from?", "conditions": ["kidney_disease", "high_blood_pressure"], "options": [
+          {"id": "restaurant", "label": "Restaurant or street stall"},
+          {"id": "home_less_salt", "label": "Home-made with little salt"},
+          {"id": "not_sure", "label": "Not sure"}]},
+        {"id": "toppings", "text": "Is extra ghee or fried onion added on top?", "conditions": ["diabetes", "high_blood_pressure"], "options": [
+          {"id": "none", "label": "No"},
+          {"id": "some", "label": "A little"},
+          {"id": "lots", "label": "A lot"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": "Moderation",
+          "reason": "Haleem has a lot of grains and lentils, so it is high in carbohydrate, and ghee adds fat.",
+          "swaps": ["Small bowl only", "Skip the ghee and fried onion on top", "Add lemon and fresh coriander instead"],
+          "escalations": [{"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]},
+        "kidney_disease": {"min_verdict": "Moderation",
+          "reason": "Lentils and meat bring a lot of protein, potassium and phosphorus, and restaurant haleem is salty.",
+          "swaps": ["Small bowl only", "Make it at home with little salt", "Ask your dietitian how much fits your plan"],
+          "escalations": [{"if": {"q": "source", "a": "restaurant"}, "min_verdict": "Avoid"}, {"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]},
+        "high_blood_pressure": {"min_verdict": "Moderation",
+          "reason": "Restaurant haleem is usually salty and rich in fat.",
+          "swaps": ["Small bowl", "Skip extra ghee and fried onion", "Make it at home with less salt"],
+          "escalations": [{"if": {"q": "toppings", "a": "lots"}, "min_verdict": "Avoid"}, {"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]}
+      }
+    },
+    {
+      "id": "daal_chawal",
+      "name": "Daal Chawal",
+      "aliases": ["daal chawal", "dal chawal", "daal rice", "dal rice", "dal chaval"],
+      "questions": [
+        {"id": "rice", "text": "How much rice do you eat?", "options": [
+          {"id": "small", "label": "Small (about half a cup)"},
+          {"id": "medium", "label": "Medium plate"},
+          {"id": "large", "label": "Large plate or more"}]},
+        {"id": "tarka", "text": "How much oil or ghee is in the daal tarka?", "conditions": ["diabetes", "high_blood_pressure"], "options": [
+          {"id": "light", "label": "Light"},
+          {"id": "lots", "label": "A lot"}]},
+        {"id": "extra_salt", "text": "Do you add extra salt at the table?", "conditions": ["kidney_disease", "high_blood_pressure"], "options": [
+          {"id": "no", "label": "No"},
+          {"id": "yes", "label": "Yes"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": null,
+          "reason": "Daal has fibre and protein, but white rice raises blood sugar, so the rice portion matters.",
+          "swaps": ["Keep rice to about half a cup", "Have more daal and a salad", "Choose brown rice if available"],
+          "escalations": [{"if": {"q": "rice", "a": ["medium", "large"]}, "min_verdict": "Moderation"}, {"if": {"q": "tarka", "a": "lots"}, "min_verdict": "Moderation"}]},
+        "kidney_disease": {"min_verdict": "Moderation",
+          "reason": "Lentils are high in potassium and phosphorus, so portion size matters. Needs differ at each stage of kidney disease.",
+          "swaps": ["Keep the daal portion small", "Skip extra salt and salty toppings", "Ask your dietitian how much daal is right for you"],
+          "escalations": []},
+        "high_blood_pressure": {"min_verdict": null,
+          "reason": "Daal can suit blood pressure when it is not salty or oily.",
+          "swaps": ["Use less salt and none at the table", "Keep the tarka light", "Add a fresh salad"],
+          "escalations": [{"if": {"q": "extra_salt", "a": "yes"}, "min_verdict": "Moderation"}, {"if": {"q": "tarka", "a": "lots"}, "min_verdict": "Moderation"}]}
+      }
+    },
+    {
+      "id": "chai",
+      "name": "Chai (milk tea)",
+      "aliases": ["chai", "doodh patti", "milk tea", "sweet tea", "karak chai", "doodh patti chai"],
+      "questions": [
+        {"id": "cups", "text": "How many cups a day?", "options": [
+          {"id": "one_two", "label": "1 to 2"},
+          {"id": "three_four", "label": "3 to 4"},
+          {"id": "five_plus", "label": "5 or more"}]},
+        {"id": "sugar", "text": "How much sugar per cup?", "conditions": ["diabetes"], "options": [
+          {"id": "none", "label": "None"},
+          {"id": "one", "label": "About 1 teaspoon"},
+          {"id": "two_plus", "label": "2 teaspoons or more"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": null,
+          "reason": "Sugar in tea counts as a sugary drink, which diabetes guidance says to limit or avoid.",
+          "swaps": ["Drink it without sugar", "Cut the sugar a little each week", "Use a smaller cup with less milk"],
+          "escalations": [{"if": {"q": "sugar", "a": "one"}, "min_verdict": "Moderation"}, {"if": {"q": "sugar", "a": "two_plus"}, "min_verdict": "Avoid"}, {"if": {"q": "cups", "a": "five_plus"}, "min_verdict": "Moderation"}]},
+        "kidney_disease": {"min_verdict": null,
+          "reason": "Milk tea adds potassium, phosphorus and fluid. One or two cups is usually fine, but limits depend on your stage.",
+          "swaps": ["Keep to one or two small cups", "Use less milk", "Ask your dietitian about fluid and milk limits"],
+          "escalations": [{"if": {"q": "cups", "a": ["three_four", "five_plus"]}, "min_verdict": "Moderation"}]},
+        "high_blood_pressure": {"min_verdict": null,
+          "reason": "Tea is fine in small amounts, but many cups of caffeine and sugar do not help blood pressure.",
+          "swaps": ["Keep to one or two cups", "Use less sugar", "Skip salty snacks like namkeen with it"],
+          "escalations": [{"if": {"q": "cups", "a": "five_plus"}, "min_verdict": "Moderation"}]}
+      }
+    },
+    {
+      "id": "chicken_karahi",
+      "name": "Chicken Karahi",
+      "aliases": ["karahi", "chicken karahi", "kadai chicken", "karahi gosht"],
+      "questions": [
+        {"id": "portion", "text": "How big is your portion?", "options": [
+          {"id": "small", "label": "Small"},
+          {"id": "medium", "label": "Medium"},
+          {"id": "large", "label": "Large"}]},
+        {"id": "oil", "text": "How much oil floats on top?", "conditions": ["diabetes", "high_blood_pressure"], "options": [
+          {"id": "little", "label": "A little"},
+          {"id": "some", "label": "Some"},
+          {"id": "lots", "label": "A lot"}]},
+        {"id": "naan", "text": "How many naan or rotis with it?", "conditions": ["diabetes"], "options": [
+          {"id": "none", "label": "None"},
+          {"id": "one", "label": "One"},
+          {"id": "two_plus", "label": "Two or more"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": null,
+          "reason": "Karahi itself is low in carbohydrate, but the oil adds calories and naan adds a lot of refined flour.",
+          "swaps": ["Eat it with one roti, not naan", "Pour off the extra oil", "Add a salad"],
+          "escalations": [{"if": {"q": "naan", "a": "two_plus"}, "min_verdict": "Moderation"}, {"if": {"q": "oil", "a": "lots"}, "min_verdict": "Moderation"}, {"if": {"q": "portion", "a": "large"}, "min_verdict": "Moderation"}]},
+        "kidney_disease": {"min_verdict": "Moderation",
+          "reason": "Restaurant karahi is salty, and the tomato-heavy gravy and big meat portions can add potassium and protein.",
+          "swaps": ["Make it at home with less salt", "Small portion of chicken", "Skip extra gravy"],
+          "escalations": [{"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]},
+        "high_blood_pressure": {"min_verdict": "Moderation",
+          "reason": "Karahi is usually high in salt and oil.",
+          "swaps": ["Ask for less salt and less oil", "Small portion", "Choose roti, skip naan and pickles"],
+          "escalations": [{"if": {"q": "oil", "a": "lots"}, "min_verdict": "Avoid"}, {"if": {"q": "portion", "a": "large"}, "min_verdict": "Avoid"}]}
+      }
+    },
+    {
+      "id": "halwa_puri",
+      "name": "Halwa Puri",
+      "aliases": ["halwa puri", "halwa poori", "puri halwa", "halwa puri chana", "halwa poori chanay"],
+      "questions": [
+        {"id": "puri", "text": "How many puri?", "options": [
+          {"id": "one", "label": "One"},
+          {"id": "two", "label": "Two"},
+          {"id": "three_plus", "label": "Three or more"}]},
+        {"id": "halwa", "text": "How much halwa?", "conditions": ["diabetes"], "options": [
+          {"id": "none", "label": "None"},
+          {"id": "small", "label": "A small spoonful"},
+          {"id": "large", "label": "A full portion"}]},
+        {"id": "curry", "text": "How much chana or aloo curry?", "conditions": ["kidney_disease", "high_blood_pressure"], "options": [
+          {"id": "small", "label": "A little"},
+          {"id": "medium", "label": "A medium bowl"},
+          {"id": "large", "label": "A large bowl"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": "Avoid",
+          "reason": "Fried puri and sweet semolina halwa are both high in refined carbohydrate and sugar.",
+          "swaps": ["Choose one roti with chana and an omelette", "Skip the halwa", "Keep this as a rare treat"],
+          "escalations": []},
+        "kidney_disease": {"min_verdict": "Moderation",
+          "reason": "Fried puri and salty chana or aloo curry add salt and fat, and potatoes add potassium.",
+          "swaps": ["One puri only", "Skip the pickle and salty chutney", "Plain roti with a small portion of curry"],
+          "escalations": [{"if": {"q": "puri", "a": "three_plus"}, "min_verdict": "Avoid"}]},
+        "high_blood_pressure": {"min_verdict": "Moderation",
+          "reason": "Fried puri, salty curry and pickle are high in fat and salt.",
+          "swaps": ["One puri only", "Skip the pickle", "Plain roti with a little curry"],
+          "escalations": [{"if": {"q": "puri", "a": "three_plus"}, "min_verdict": "Avoid"}]}
+      }
+    },
+    {
+      "id": "samosa",
+      "name": "Samosa",
+      "aliases": ["samosa", "samosay", "aloo samosa", "chicken samosa", "keema samosa"],
+      "questions": [
+        {"id": "count", "text": "How many samosas?", "options": [
+          {"id": "one", "label": "One"},
+          {"id": "two", "label": "Two"},
+          {"id": "three_plus", "label": "Three or more"}]},
+        {"id": "chutney", "text": "Do you have chutney or ketchup with it?", "options": [
+          {"id": "none", "label": "No"},
+          {"id": "some", "label": "A little"},
+          {"id": "lots", "label": "A lot"}]},
+        {"id": "filling", "text": "What is the filling?", "conditions": ["kidney_disease"], "options": [
+          {"id": "aloo", "label": "Potato"},
+          {"id": "meat", "label": "Meat or keema"},
+          {"id": "not_sure", "label": "Not sure"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": "Moderation",
+          "reason": "Samosas are fried pastry made with refined flour and a starchy filling, and sweet chutney adds sugar.",
+          "swaps": ["One samosa only", "Choose a baked or air-fried one if possible", "Skip the sweet chutney"],
+          "escalations": [{"if": {"q": "count", "a": "three_plus"}, "min_verdict": "Avoid"}]},
+        "kidney_disease": {"min_verdict": "Moderation",
+          "reason": "A fried, salty snack. A potato filling is high in potassium.",
+          "swaps": ["One samosa only", "Skip the chutney", "Choose a lower-salt snack instead"],
+          "escalations": [{"if": {"q": "count", "a": "three_plus"}, "min_verdict": "Avoid"}]},
+        "high_blood_pressure": {"min_verdict": "Moderation",
+          "reason": "Fried and usually salty, often with salty chutney or chaat masala on top.",
+          "swaps": ["One samosa only", "Skip chutney and chaat masala", "A baked version with less salt"],
+          "escalations": [{"if": {"q": "count", "a": "three_plus"}, "min_verdict": "Avoid"}]}
+      }
+    },
+    {
+      "id": "paratha",
+      "name": "Paratha",
+      "aliases": ["paratha", "parantha", "aloo paratha", "plain paratha", "anda paratha", "lachha paratha"],
+      "questions": [
+        {"id": "type", "text": "What type is it?", "options": [
+          {"id": "plain", "label": "Plain"},
+          {"id": "aloo", "label": "Potato-stuffed"},
+          {"id": "other", "label": "Egg or other filling"}]},
+        {"id": "count", "text": "How many parathas?", "options": [
+          {"id": "one", "label": "One"},
+          {"id": "two", "label": "Two"},
+          {"id": "three_plus", "label": "Three or more"}]},
+        {"id": "ghee", "text": "How much ghee or oil is used?", "conditions": ["diabetes", "high_blood_pressure"], "options": [
+          {"id": "light", "label": "Light"},
+          {"id": "lots", "label": "A lot"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": "Moderation",
+          "reason": "Paratha is refined flour cooked in oil or ghee, so it is high in carbohydrate and fat.",
+          "swaps": ["One small paratha", "Cook with little oil, or choose a plain roti", "Add an egg or vegetables and skip sweet tea"],
+          "escalations": [{"if": {"q": "count", "a": ["two", "three_plus"]}, "min_verdict": "Avoid"}]},
+        "kidney_disease": {"min_verdict": null,
+          "reason": "A plain paratha is lower in potassium, but an aloo paratha adds potassium, and the fat and salt add up.",
+          "swaps": ["One plain paratha", "Skip salty pickle", "Cook with less oil"],
+          "escalations": [{"if": {"q": "type", "a": "aloo"}, "min_verdict": "Moderation"}, {"if": {"q": "count", "a": ["two", "three_plus"]}, "min_verdict": "Moderation"}]},
+        "high_blood_pressure": {"min_verdict": "Moderation",
+          "reason": "Ghee and oil add saturated fat, and salty pickle or cheese on the side adds sodium.",
+          "swaps": ["One paratha", "Less ghee", "Skip pickle and salty spreads"],
+          "escalations": [{"if": {"q": "ghee", "a": "lots"}, "min_verdict": "Avoid"}, {"if": {"q": "count", "a": "three_plus"}, "min_verdict": "Avoid"}]}
+      }
+    },
+    {
+      "id": "roti_sabzi",
+      "name": "Roti with Vegetable Curry (Sabzi)",
+      "aliases": ["roti sabzi", "chapati sabzi", "roti sabji", "roti with vegetables", "phulka sabzi", "sabzi roti"],
+      "questions": [
+        {"id": "roti", "text": "How many rotis?", "options": [
+          {"id": "one_two", "label": "1 to 2"},
+          {"id": "three_four", "label": "3 to 4"},
+          {"id": "five_plus", "label": "5 or more"}]},
+        {"id": "flour", "text": "Is the roti whole-wheat or white flour?", "conditions": ["diabetes"], "options": [
+          {"id": "whole_wheat", "label": "Whole-wheat"},
+          {"id": "white", "label": "White flour"},
+          {"id": "not_sure", "label": "Not sure"}]},
+        {"id": "gravy", "text": "Does the sabzi have potato or a tomato-heavy gravy?", "conditions": ["kidney_disease"], "options": [
+          {"id": "yes", "label": "Yes"},
+          {"id": "no", "label": "No"},
+          {"id": "not_sure", "label": "Not sure"}]},
+        {"id": "salt_oil", "text": "How salty and oily is the sabzi?", "conditions": ["kidney_disease", "high_blood_pressure"], "options": [
+          {"id": "light", "label": "Light"},
+          {"id": "medium", "label": "Medium"},
+          {"id": "heavy", "label": "Heavy"}]}
+      ],
+      "rules": {
+        "diabetes": {"min_verdict": null,
+          "reason": "Whole-wheat roti with vegetables is a good everyday meal, but the number and type of roti matter.",
+          "swaps": ["Choose whole-wheat roti", "Two rotis with plenty of vegetables", "Add a bowl of daal or plain yoghurt"],
+          "escalations": [{"if": {"q": "roti", "a": ["three_four", "five_plus"]}, "min_verdict": "Moderation"}, {"if": {"q": "flour", "a": "white"}, "min_verdict": "Moderation"}]},
+        "kidney_disease": {"min_verdict": null,
+          "reason": "Many vegetable curries are fine, but potato and tomato-heavy gravies add potassium. Needs depend on your stage.",
+          "swaps": ["Ask your dietitian which vegetables suit you", "Use less salt", "Avoid potassium-based salt substitutes unless your doctor says so"],
+          "escalations": [{"if": {"q": "gravy", "a": "yes"}, "min_verdict": "Moderation"}, {"if": {"q": "salt_oil", "a": "heavy"}, "min_verdict": "Moderation"}]},
+        "high_blood_pressure": {"min_verdict": null,
+          "reason": "Roti with vegetables is a good choice when it is not too salty or oily.",
+          "swaps": ["Use less salt in the sabzi", "Add more vegetables", "Skip pickle on the side"],
+          "escalations": [{"if": {"q": "salt_oil", "a": "heavy"}, "min_verdict": "Moderation"}]}
+      }
+    }
+  ]
+}
