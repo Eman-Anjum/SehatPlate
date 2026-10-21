@@ -26,10 +26,11 @@ export default function AuthPage() {
     setUser(null);
 
     try {
-      if (isLogin) {
+           if (isLogin) {
         await loginUser({ email, password });
       } else {
         await registerUser({ email, password });
+        await loginUser({ email, password });
       }
       const me = await getMe();
       setUser(me);

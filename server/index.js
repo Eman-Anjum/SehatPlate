@@ -29,7 +29,7 @@ app.get('/health', async (req, res) => {
   res.json({ status: 'ok', db: dbOk });
 });
 
-// Auth routes — register + login both live in authRouter
+// Auth routes
 app.use('/auth', authRouter);
 app.get('/me', requireAuth, async (req, res) => {
   const result = await pool.query(

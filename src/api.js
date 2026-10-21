@@ -19,11 +19,13 @@ async function apiFetch(path, options = {}) {
     'Content-Type': 'application/json',
     ...options.headers,
   };
+    let url = `${BASE}${path}`;
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+    url += (url.includes('?') ? '&' : '?') + 'access_token=' + encodeURIComponent(accessToken);
   }
 
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(url, {
     ...options,
     headers,
   });

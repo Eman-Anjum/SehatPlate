@@ -82,13 +82,15 @@ router.post('/login', async (req, res) => {
 });
 
 export function requireAuth(req, res, next) {
-  const header = req.headers.authorization || '';
-  const parts = header.split(' ');
-  if (parts.length !== 2 || parts[0].toLowerCase() !== 'bearer') {
+  let token = null;
+  if (typeof req.query.access_token === 'string') token = req.query.access_token;
+  if (!token) {
+    const parts = (req.headers.authorization || '').split(' ');
+    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') token = parts[1];
+  }
+  if (!token) {
     return res.status(401).json({ detail: 'Authentication required' });
   }
-
-  const token = parts[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     req.userId = decoded.sub;
@@ -97,5 +99,4 @@ export function requireAuth(req, res, next) {
     return res.status(401).json({ detail: 'Invalid or expired token' });
   }
 }
-
 export default router;
