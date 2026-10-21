@@ -1,278 +1,388 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
-import {
-  getHealth,
-  registerUser,
-  loginUser,
-  login2fa,
-  setup2fa,
-  verify2fa,
-  getMe,
-  clearAccessToken,
-} from '../api';
+import { getHealth } from '../api';
 
+/* ── tiny inline styles ─────────────────────────────────────────── */
+const s = {
+  page:    { maxWidth: 440, margin: '40px auto', padding: '0 16px', fontFamily: 'system-ui, sans-serif' },
+  card:    { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '28px 32px' },
+  title:   { margin: '0 0 4px', fontSize: 26, fontWeight: 700, color: '#1a202c' },
+  sub:     { margin: '0 0 24px', fontSize: 13, color: '#718096' },
+  label:   { display: 'block', fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 4 },
+  input:   { width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1px solid #cbd5e0',
+             borderRadius: 6, fontSize: 14, outline: 'none' },
+  btn:     { width: '100%', padding: '10px 0', background: '#38a169', color: '#fff', border: 'none',
+             borderRadius: 6, fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
+  btnSec:  { background: 'none', border: 'none', color: '#38a169', cursor: 'pointer',
+             fontSize: 13, padding: 0, textDecoration: 'underline' },
+  btnDng:  { width: '100%', padding: '9px 0', background: '#e53e3e', color: '#fff', border: 'none',
+             borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
+  err:     { background: '#fff5f5', border: '1px solid #feb2b2', borderRadius: 6,
+             padding: '10px 12px', color: '#c53030', fontSize: 13, marginBottom: 12 },
+  ok:      { background: '#f0fff4', border: '1px solid #9ae6b4', borderRadius: 6,
+             padding: '10px 12px', color: '#276749', fontSize: 13, marginBottom: 12 },
+  hint:    { fontSize: 12, color: '#718096', marginTop: 16, textAlign: 'center' },
+  field:   { marginBottom: 14 },
+  row:     { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
+  code:    { fontFamily: 'monospace', background: '#edf2f7', padding: '2px 6px', borderRadius: 4 },
+  ul:      { paddingLeft: 20, margin: '8px 0' },
+  warn:    { color: '#c05621', fontWeight: 600, fontSize: 13 },
+  spinner: { display: 'inline-block', width: 14, height: 14, border: '2px solid #fff',
+             borderTop: '2px solid transparent', borderRadius: '50%',
+             animation: 'spin 0.7s linear infinite', marginRight: 6 },
+  divider: { borderTop: '1px solid #e2e8f0', margin: '20px 0' },
+  small:   { fontSize: 12, color: '#a0aec0' },
+};
+
+/* ── helpers ─────────────────────────────────────────────────────── */
+function Spinner() {
+  return (
+    <span style={s.spinner} />
+  );
+}
+
+function ErrorBox({ msg }) {
+  if (!msg) return null;
+  return <div style={s.err} role="alert">{msg}</div>;
+}
+
+function OkBox({ msg }) {
+  if (!msg) return null;
+  return <div style={s.ok}>{msg}</div>;
+}
+
+function Field({ label, children }) {
+  return (
+    <div style={s.field}>
+      <label style={s.label}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+/* ── main component ──────────────────────────────────────────────── */
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [health, setHealth] = useState(null);
-  const [user, setUser] = useState(null);
-  const [tempToken, setTempToken] = useState(null);
-  const [twoFactorCode, setTwoFactorCode] = useState('');
+  // ── local UI state ─────────────────────────────────────────────
+  const [isLogin, setIsLogin]         = useState(true);
+  const [email, setEmail]             = useState('');
+  const [password, setPassword]       = useState('');
+  const [localError, setLocalError]   = useState('');
+  const [localOk, setLocalOk]         = useState('');
+  const [localLoading, setLocalLoading] = useState(false);
+  const [health, setHealth]           = useState(null);
+
+  // 2FA login step
+  const [tempToken, setTempToken]     = useState(null);
+  const [twoCode, setTwoCode]         = useState('');
   const [useRecovery, setUseRecovery] = useState(false);
-  const [setupData, setSetupData] = useState(null);
-  const [qrDataUrl, setQrDataUrl] = useState(null);
-  const [verifyCode, setVerifyCode] = useState('');
 
-  useEffect(() => {
-    getHealth().then(setHealth);
-  }, []);
+  // 2FA setup step
+  const [setupData, setSetupData]     = useState(null);
+  const [qrUrl, setQrUrl]             = useState(null);
+  const [verifyCode, setVerifyCode]   = useState('');
+  const [setupOk, setSetupOk]         = useState(false);
 
-  const resetForm = () => {
-    setError('');
-    setUser(null);
-    setTempToken(null);
-    setTwoFactorCode('');
-    setUseRecovery(false);
-    setSetupData(null);
-    setQrDataUrl(null);
-    setVerifyCode('');
+  // current user
+  const [me, setMe]                   = useState(null);
+
+  useEffect(() => { getHealth().then(setHealth).catch(() => {}); }, []);
+
+  /* util */
+  const fmt = (err) =>
+    err.status === 429 ? 'Too many attempts, try again later.' : err.message || 'Something went wrong.';
+
+  const resetAll = () => {
+    setLocalError(''); setLocalOk('');
+    setMe(null); setTempToken(null);
+    setTwoCode(''); setUseRecovery(false);
+    setSetupData(null); setQrUrl(null); setVerifyCode(''); setSetupOk(false);
   };
 
-  const loadMe = async () => {
-    const me = await getMe();
-    setUser(me);
-  };
+  /* ── handlers ──────────────────────────────────────────────────── */
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    setUser(null);
-    setTempToken(null);
-
+    setLocalError(''); setLocalOk(''); setLocalLoading(true);
     try {
-      let data;
-      if (isLogin) {
-        data = await loginUser({ email, password });
-      } else {
-        await registerUser({ email, password });
-        data = await loginUser({ email, password });
+      if (!isLogin) {
+        /* Register then auto-login */
+        await import('../api').then(({ registerUser }) => registerUser({ email, password }));
+        setLocalOk('Account created! Logging you in…');
       }
-
+      const { loginUser } = await import('../api');
+      const data = await loginUser({ email, password });
       if (data.requires_2fa && data.temp_token) {
         setTempToken(data.temp_token);
+        setLocalOk('');
       } else if (data.access_token) {
-        await loadMe();
+        const { getMe } = await import('../api');
+        setMe(await getMe());
+        setLocalOk('');
       } else {
-        throw new Error('Unexpected response from login');
+        throw new Error('Unexpected response from server.');
       }
     } catch (err) {
-      setError(err.status === 429 ? 'Too many attempts, try again later' : err.message || 'Something went wrong');
+      setLocalError(fmt(err));
+      setLocalOk('');
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
 
-  const handle2faSubmit = async (e) => {
+  const handle2faLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
+    setLocalError(''); setLocalLoading(true);
     try {
+      const { login2fa, getMe } = await import('../api');
       const payload = useRecovery
-        ? { temp_token: tempToken, recovery_code: twoFactorCode }
-        : { temp_token: tempToken, code: twoFactorCode };
+        ? { temp_token: tempToken, recovery_code: twoCode }
+        : { temp_token: tempToken, code: twoCode };
       await login2fa(payload);
-      setTempToken(null);
-      setTwoFactorCode('');
-      await loadMe();
+      setTempToken(null); setTwoCode(''); setUseRecovery(false);
+      setMe(await getMe());
     } catch (err) {
-      setError(err.status === 429 ? 'Too many attempts, try again later' : err.message || 'Something went wrong');
+      setLocalError(fmt(err));
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
 
   const handleEnable2fa = async () => {
-    setLoading(true);
-    setError('');
-    setSetupData(null);
-    setQrDataUrl(null);
-
+    setLocalError(''); setLocalLoading(true);
     try {
+      const { setup2fa } = await import('../api');
       const data = await setup2fa();
       setSetupData(data);
       if (data.otpauth_uri) {
-        const dataUrl = await QRCode.toDataURL(data.otpauth_uri);
-        setQrDataUrl(dataUrl);
+        setQrUrl(await QRCode.toDataURL(data.otpauth_uri, { width: 200 }));
       }
     } catch (err) {
-      setError(err.message || 'Something went wrong');
+      setLocalError(fmt(err));
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
 
   const handleVerify2fa = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
+    setLocalError(''); setLocalLoading(true);
     try {
+      const { verify2fa, getMe } = await import('../api');
       await verify2fa(verifyCode);
-      setSetupData(null);
-      setQrDataUrl(null);
-      setVerifyCode('');
-      await loadMe();
+      setSetupData(null); setQrUrl(null); setVerifyCode(''); setSetupOk(true);
+      setMe(await getMe());
     } catch (err) {
-      setError(err.message || 'Something went wrong');
+      setLocalError(fmt(err));
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
 
   const handleLogout = () => {
-    clearAccessToken();
-    resetForm();
-    setEmail('');
-    setPassword('');
+    import('../api').then(({ clearAccessToken }) => clearAccessToken());
+    resetAll();
+    setEmail(''); setPassword('');
   };
 
-  const toggleMode = () => {
-    setIsLogin((prev) => !prev);
-    resetForm();
-  };
-
-  if (user) {
-    return (
-      <div style={{ maxWidth: 400, margin: '0 auto', padding: 24 }}>
-        <h1>SehatPlate</h1>
-        <pre>{health ? JSON.stringify(health, null, 2) : 'Loading health...'}</pre>
-        <h2>Welcome</h2>
-        <pre>{JSON.stringify(user, null, 2)}</pre>
-        {user.totp_enabled ? (
-          <p>2FA is enabled</p>
-        ) : (
-          <div>
-            <button onClick={handleEnable2fa} disabled={loading}>
-              {loading ? 'Loading...' : 'Enable 2FA'}
-            </button>
-            {setupData && (
-              <div style={{ marginTop: 16 }}>
-                {qrDataUrl && <img src={qrDataUrl} alt="2FA QR code" style={{ maxWidth: '100%' }} />}
-                <p><strong>Secret:</strong> {setupData.secret}</p>
-                <p style={{ color: 'red' }}>Save these now. They are shown only once.</p>
-                <ul>
-                  {setupData.recovery_codes.map((code, idx) => (
-                    <li key={idx}><code>{code}</code></li>
-                  ))}
-                </ul>
-                <form onSubmit={handleVerify2fa}>
-                  <label>
-                    6-digit code
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={6}
-                      value={verifyCode}
-                      onChange={(e) => setVerifyCode(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
-                  </label>
-                  <button type="submit" disabled={loading}>
-                    {loading ? 'Verifying...' : 'Verify'}
-                  </button>
-                </form>
-              </div>
-            )}
-          </div>
-        )}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button onClick={handleLogout}>Logout</button>
-      </div>
-    );
-  }
-
+  /* ── render: 2FA login step ────────────────────────────────────── */
   if (tempToken) {
     return (
-      <div style={{ maxWidth: 400, margin: '0 auto', padding: 24 }}>
-        <h1>SehatPlate</h1>
-        <h2>Two-Factor Authentication</h2>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <form onSubmit={handle2faSubmit}>
-          <label>
-            {useRecovery ? 'Recovery code' : '6-digit code'}
-            <input
-              type="text"
-              inputMode={useRecovery ? 'text' : 'numeric'}
-              pattern={useRecovery ? undefined : '[0-9]*'}
-              maxLength={useRecovery ? undefined : 6}
-              value={twoFactorCode}
-              onChange={(e) => setTwoFactorCode(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </label>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Verifying...' : 'Verify'}
-          </button>
-        </form>
-        <p>
-          <button type="button" onClick={() => setUseRecovery((prev) => !prev)} disabled={loading}>
-            {useRecovery ? 'Use a TOTP code instead' : 'Use a recovery code instead'}
-          </button>
-        </p>
+      <div style={s.page}>
+        <div style={s.card}>
+          <h1 style={s.title}>SehatPlate</h1>
+          <p style={s.sub}>Two-Factor Authentication</p>
+          <ErrorBox msg={localError} />
+          <form onSubmit={handle2faLogin}>
+            <Field label={useRecovery ? 'Recovery code' : '6-digit TOTP code'}>
+              <input
+                style={s.input}
+                type="text"
+                autoComplete="one-time-code"
+                inputMode={useRecovery ? 'text' : 'numeric'}
+                pattern={useRecovery ? undefined : '[0-9]*'}
+                maxLength={useRecovery ? 32 : 6}
+                value={twoCode}
+                onChange={(e) => setTwoCode(e.target.value)}
+                required
+                disabled={localLoading}
+                autoFocus
+              />
+            </Field>
+            <button style={s.btn} type="submit" disabled={localLoading}>
+              {localLoading && <Spinner />}
+              {localLoading ? 'Verifying…' : 'Verify'}
+            </button>
+          </form>
+          <div style={s.hint}>
+            <button style={s.btnSec} type="button" onClick={() => { setUseRecovery(v => !v); setTwoCode(''); }}>
+              {useRecovery ? 'Use a TOTP code instead' : 'Use a recovery code instead'}
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
+  /* ── render: logged-in (welcome) view ──────────────────────────── */
+  if (me) {
+    return (
+      <div style={s.page}>
+        <div style={s.card}>
+          <h1 style={s.title}>SehatPlate</h1>
+          <p style={s.sub}>
+            Health check:{' '}
+            {health
+              ? <span style={{ color: health.status === 'ok' ? '#38a169' : '#e53e3e' }}>{health.status}</span>
+              : 'checking…'}
+          </p>
+
+          <h2 style={{ margin: '0 0 4px', fontSize: 18 }}>Welcome back!</h2>
+          <p style={{ margin: '0 0 16px', fontSize: 14, color: '#4a5568' }}>
+            <strong>{me.email}</strong>&nbsp;&nbsp;
+            <span style={s.small}>id: {me.id}</span>
+          </p>
+
+          <div style={s.divider} />
+
+          {/* 2FA status */}
+          {me.totp_enabled ? (
+            <OkBox msg="✓ Two-factor authentication is enabled on your account." />
+          ) : (
+            <div>
+              {setupOk && <OkBox msg="✓ 2FA enabled! Your account is now protected." />}
+              {!setupData && !setupOk && (
+                <div>
+                  <p style={{ fontSize: 13, color: '#718096', marginTop: 0 }}>
+                    Strengthen your account with two-factor authentication.
+                  </p>
+                  <button
+                    style={{ ...s.btn, background: '#3182ce' }}
+                    onClick={handleEnable2fa}
+                    disabled={localLoading}
+                  >
+                    {localLoading && <Spinner />}
+                    {localLoading ? 'Loading…' : 'Enable 2FA'}
+                  </button>
+                </div>
+              )}
+
+              {setupData && (
+                <div>
+                  <p style={s.warn}>Save these now. They are shown only once.</p>
+                  {qrUrl && (
+                    <div style={{ textAlign: 'center', margin: '12px 0' }}>
+                      <img src={qrUrl} alt="Scan with your authenticator app" style={{ border: '4px solid #e2e8f0', borderRadius: 8 }} />
+                      <p style={s.small}>Scan this QR code with your authenticator app</p>
+                    </div>
+                  )}
+                  <p style={{ fontSize: 13 }}>
+                    <strong>Manual entry secret:</strong>{' '}
+                    <span style={s.code}>{setupData.secret}</span>
+                  </p>
+                  <p style={{ ...s.warn, marginTop: 12 }}>Recovery codes (one-time use):</p>
+                  <ul style={s.ul}>
+                    {(setupData.recovery_codes || []).map((c, i) => (
+                      <li key={i}><code style={s.code}>{c}</code></li>
+                    ))}
+                  </ul>
+                  <div style={s.divider} />
+                  <ErrorBox msg={localError} />
+                  <form onSubmit={handleVerify2fa}>
+                    <Field label="Enter the 6-digit code from your app to confirm">
+                      <input
+                        style={s.input}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={6}
+                        value={verifyCode}
+                        onChange={(e) => setVerifyCode(e.target.value)}
+                        required
+                        disabled={localLoading}
+                        autoFocus
+                      />
+                    </Field>
+                    <button style={s.btn} type="submit" disabled={localLoading}>
+                      {localLoading && <Spinner />}
+                      {localLoading ? 'Verifying…' : 'Verify & Enable 2FA'}
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+          )}
+
+          <ErrorBox msg={localError} />
+          <div style={s.divider} />
+          <button style={s.btnDng} onClick={handleLogout}>Logout</button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── render: login / register form ─────────────────────────────── */
   return (
-    <div style={{ maxWidth: 400, margin: '0 auto', padding: 24 }}>
-      <h1>SehatPlate</h1>
-      <pre>{health ? JSON.stringify(health, null, 2) : 'Loading health...'}</pre>
-      <form onSubmit={handleSubmit}>
-        <h2>{isLogin ? 'Login' : 'Register'}</h2>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <div>
-          <label>
-            Email
+    <div style={s.page}>
+      <div style={s.card}>
+        <h1 style={s.title}>SehatPlate</h1>
+        <p style={s.sub}>
+          AI food guide for Pakistani dishes &nbsp;·&nbsp; Health check:{' '}
+          {health
+            ? <span style={{ color: health.status === 'ok' ? '#38a169' : '#e53e3e' }}>{health.status}</span>
+            : 'checking…'}
+        </p>
+
+        <form onSubmit={handleSubmit} noValidate>
+          <h2 style={{ margin: '0 0 18px', fontSize: 20 }}>{isLogin ? 'Sign in' : 'Create account'}</h2>
+
+          <ErrorBox msg={localError} />
+          <OkBox msg={localOk} />
+
+          <Field label="Email address">
             <input
+              style={s.input}
               type="email"
               value={email}
+              autoComplete="email"
               onChange={(e) => setEmail(e.target.value)}
               required
-              disabled={loading}
+              disabled={localLoading}
+              placeholder="you@example.com"
             />
-          </label>
-        </div>
-        <div>
-          <label>
-            Password
+          </Field>
+
+          <Field label="Password">
             <input
+              style={s.input}
               type="password"
               value={password}
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              disabled={loading}
+              disabled={localLoading}
+              placeholder={isLogin ? '••••••••' : 'At least 8 characters'}
             />
-          </label>
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Loading...' : isLogin ? 'Login' : 'Register'}
-        </button>
-        <p>
-          {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-          <button type="button" onClick={toggleMode} disabled={loading}>
-            {isLogin ? 'Register' : 'Login'}
+          </Field>
+
+          <button style={s.btn} type="submit" disabled={localLoading}>
+            {localLoading && <Spinner />}
+            {localLoading ? 'Please wait…' : isLogin ? 'Sign in' : 'Create account'}
           </button>
-        </p>
-      </form>
+        </form>
+
+        <div style={{ ...s.hint, marginTop: 20 }}>
+          {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
+          <button
+            style={s.btnSec}
+            type="button"
+            onClick={() => { setIsLogin(v => !v); setLocalError(''); setLocalOk(''); }}
+            disabled={localLoading}
+          >
+            {isLogin ? 'Register' : 'Sign in'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

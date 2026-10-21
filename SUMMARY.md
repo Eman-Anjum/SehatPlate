@@ -17,13 +17,15 @@ verdict (Safe / Moderation / Avoid) with reason, swaps, and disclaimer.
 - Vite proxy configuration: /auth and /me proxied to Express alongside /api and /health.
 - Module 3a (2FA backend) done: POST /auth/2fa/setup, /auth/2fa/verify, /auth/2fa/login; TOTP + 8 hashed recovery codes; temp_token flow.
 - Module 3b (2FA frontend) done.
+- Module 4 done: server/dish_rules.json (10 dishes, schema in file).
+- Phase 6 (Client Auth Page & API Helpers) done: Register/Login toggle form, token storage, authenticated requests, 2FA login step, Enable-2FA setup flow (QR + recovery codes + verify), Logout, loading spinners, error/success feedback; `src/hooks/useAuth.js` added; `src/api.js` JSDoc-annotated and `loginUser` returns data unchanged on `requires_2fa`.
+
 ## NOT built yet
-- dish rules, Groq, verdict, scan UI, history.
+- Groq dish identify, verdict, scan UI, history.
+
 ## Gotchas
 - package.json needs "type": "module". Never set the VITE_API_URL secret.
-- Express on 3001; Vite proxy must list every route prefix (/auth, /me, /api, /health, later /dish, /verdict, /history).
+- Express on 3001; Vite proxy must list every route prefix (/auth, /me, /api, /health, /dish).
 - The preview proxy strips Authorization, cookies and custom headers. Only the
   body, query string and Content-Type arrive. The client sends the token as
   ?access_token=... and requireAuth reads it first. temp_tokens go in the JSON body.
-## NOT built yet
-- Module 3 (2FA). The earlier "Phase 3" was only login. No twofa.js, no otplib.
