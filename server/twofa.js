@@ -150,6 +150,10 @@ router.post(
     const { temp_token: tempToken, code, recovery_code: recoveryCode } =
       parsed.data;
 
+    // Normalize code and recovery_code
+    const normalizedCode = code ? code.replace(/\s/g, '') : undefined;
+    const normalizedRecoveryCode = recoveryCode ? recoveryCode.trim().toUpperCase() : undefined;
+
     let decoded;
     try {
       decoded = jwt.verify(tempToken, JWT_SECRET, { algorithms: ['HS256'] });
@@ -176,16 +180,16 @@ router.post(
 
     let success = false;
 
-    if (code) {
+    if (normalizedCode) {
       success = authenticator.verify({
-        token: code,
+        token: normalizedCode,
         secret: user.totp_secret,
         window: 1,
       });
-    } else if (recoveryCode && Array.isArray(user.recovery_codes)) {
+    } else if (normalizedRecoveryCode && Array.isArray(user.recovery_codes)) {
       const hashes = user.recovery_codes;
       for (let i = 0; i < hashes.length; i += 1) {
-        if (await bcrypt.compare(recoveryCode, hashes[i])) {
+        if (await bcrypt.compare(normalizedRecoveryCode, hashes[i])) {
           const remaining = hashes.filter((_, idx) => idx !== i);
           await pool.query(
             'UPDATE users SET recovery_codes = $1 WHERE id = $2',

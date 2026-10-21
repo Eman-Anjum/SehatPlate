@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pyjwt
+bcrypt
+pyotp
+groq
+python-multipart
+pytest
+psycopg2-binary

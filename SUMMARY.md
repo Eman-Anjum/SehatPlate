@@ -1,31 +1,26 @@
-# SehatPlate — Project Summary
+# SehatPlate
 
-## Project
-AI food guide for Pakistani dishes. User uploads a photo or types a dish name,
-picks a condition, confirms AI's guess, answers follow-up questions, and gets a
-verdict (Safe / Moderation / Avoid) with reason, swaps, and disclaimer.
+AI food guide for Pakistani dishes. Users upload a photo or type a dish name, choose a condition, answer follow-up questions, and receive a verdict (Safe / Moderation / Avoid) with swaps and a medical disclaimer.
 
 ## Stack
-- Frontend: React 18 + Vite 4, served on port 5173 (dev) via Vite proxy
-- Backend: Express on port 3001 (`API_PORT`), proxied by Vite for `/health` and `/api`
-- Database: PostgreSQL via `DATABASE_URL` (pg ^8.11.3, shared pool max 5)
-- AI: Groq (server-side only, server/ai.js — future module)
+
+- Frontend: React + Vite.
+- Backend: Node.js + Express, Zod, JWT + bcryptjs, TOTP recovery codes.
+- Database: PostgreSQL via platform migrations.
+- AI: Groq API called only from `server/ai.js`.
 
 ## Done
-- Module 1: scaffold, /health, users + scans tables.
-- Module 2: register, login, requireAuth, GET /me, login page (verified).
-- Vite proxy configuration: /auth and /me proxied to Express alongside /api and /health.
-- Module 3a (2FA backend) done: POST /auth/2fa/setup, /auth/2fa/verify, /auth/2fa/login; TOTP + 8 hashed recovery codes; temp_token flow.
-- Module 3b (2FA frontend) done.
-- Module 4 done: server/dish_rules.json (10 dishes, schema in file).
-- Phase 6 (Client Auth Page & API Helpers) done: Register/Login toggle form, token storage, authenticated requests, 2FA login step, Enable-2FA setup flow (QR + recovery codes + verify), Logout, loading spinners, error/success feedback; `src/hooks/useAuth.js` added; `src/api.js` JSDoc-annotated and `loginUser` returns data unchanged on `requires_2fa`.
 
-## NOT built yet
-- Groq dish identify, verdict, scan UI, history.
+- Module 1: backend skeleton, health check, database pool, `users`/`scans` models via migration.
+- Module 5a: Groq AI layer (`identifyDish`, defensive parsing, retries) with Vitest tests; no routes.
+- Module 5b: POST /dish/identify (image via Groq or typed name via dish_rules.json, 10 req/min per user); npm test not run here (no shell), please run it.
+
+## Not built yet
+
+- Module 4b (auth hardening), Module 5 (Groq AI layer and POST /dish/identify), follow-up questions, verdict logic, history endpoint, and full frontend scan flow.
 
 ## Gotchas
-- package.json needs "type": "module". Never set the VITE_API_URL secret.
-- Express on 3001; Vite proxy must list every route prefix (/auth, /me, /api, /health, /dish).
-- The preview proxy strips Authorization, cookies and custom headers. Only the
-  body, query string and Content-Type arrive. The client sends the token as
-  ?access_token=... and requireAuth reads it first. temp_tokens go in the JSON body.
+
+- `package.json` must keep `"type": "module"`.
+- Vite proxy must list every route prefix (e.g. `/auth`, `/me`, `/dish`).
+- Preview proxy strips headers, so send `access_token` as query param and `temp_token` inside the JSON body.
