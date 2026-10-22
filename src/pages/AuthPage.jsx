@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { getHealth } from '../api';
+import ScanPage from './ScanPage';
 
 /* ── tiny inline styles ─────────────────────────────────────────── */
 const s = {
@@ -223,98 +224,89 @@ export default function AuthPage() {
     );
   }
 
-  /* ── render: logged-in (welcome) view ──────────────────────────── */
+  /* ── render: logged-in view ────────────────────────────────────── */
   if (me) {
     return (
-      <div style={s.page}>
-        <div style={s.card}>
-          <h1 style={s.title}>SehatPlate</h1>
-          <p style={s.sub}>
-            Health check:{' '}
-            {health
-              ? <span style={{ color: health.status === 'ok' ? '#38a169' : '#e53e3e' }}>{health.status}</span>
-              : 'checking…'}
-          </p>
+      <div style={{ fontFamily: 'system-ui, sans-serif' }}>
+        {/* Top bar */}
+        <div style={{ background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '10px 20px',
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <span style={{ fontWeight: 700, fontSize: 18, color: '#1a202c' }}>SehatPlate</span>
+            <span style={{ marginLeft: 12, fontSize: 13, color: '#718096' }}>{me.email}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            {/* 2FA inline section */}
+            {!me.totp_enabled && !setupData && !setupOk && (
+              <button
+                style={{ ...s.btn, background: '#3182ce', width: 'auto', marginTop: 0, padding: '7px 14px', fontSize: 13 }}
+                onClick={handleEnable2fa}
+                disabled={localLoading}
+              >
+                {localLoading && <Spinner />}
+                Enable 2FA
+              </button>
+            )}
+            {me.totp_enabled && (
+              <span style={{ fontSize: 12, color: '#276749', fontWeight: 600 }}>✓ 2FA on</span>
+            )}
+            <button style={s.btnDng} onClick={handleLogout}>Logout</button>
+          </div>
+        </div>
 
-          <h2 style={{ margin: '0 0 4px', fontSize: 18 }}>Welcome back!</h2>
-          <p style={{ margin: '0 0 16px', fontSize: 14, color: '#4a5568' }}>
-            <strong>{me.email}</strong>&nbsp;&nbsp;
-            <span style={s.small}>id: {me.id}</span>
-          </p>
-
-          <div style={s.divider} />
-
-          {/* 2FA status */}
-          {me.totp_enabled ? (
-            <OkBox msg="✓ Two-factor authentication is enabled on your account." />
-          ) : (
-            <div>
-              {setupOk && <OkBox msg="✓ 2FA enabled! Your account is now protected." />}
-              {!setupData && !setupOk && (
-                <div>
-                  <p style={{ fontSize: 13, color: '#718096', marginTop: 0 }}>
-                    Strengthen your account with two-factor authentication.
-                  </p>
-                  <button
-                    style={{ ...s.btn, background: '#3182ce' }}
-                    onClick={handleEnable2fa}
-                    disabled={localLoading}
-                  >
+        {/* 2FA setup banner */}
+        {(setupOk || setupData || localError) && (
+          <div style={{ maxWidth: 520, margin: '16px auto 0', padding: '0 16px' }}>
+            {setupOk && <OkBox msg="✓ 2FA enabled! Your account is now protected." />}
+            <ErrorBox msg={localError} />
+            {setupData && (
+              <div style={s.card}>
+                <p style={s.warn}>Save these now. They are shown only once.</p>
+                {qrUrl && (
+                  <div style={{ textAlign: 'center', margin: '12px 0' }}>
+                    <img src={qrUrl} alt="Scan with your authenticator app" style={{ border: '4px solid #e2e8f0', borderRadius: 8 }} />
+                    <p style={s.small}>Scan with your authenticator app</p>
+                  </div>
+                )}
+                <p style={{ fontSize: 13 }}>
+                  <strong>Secret:</strong>{' '}
+                  <span style={s.code}>{setupData.secret}</span>
+                </p>
+                <p style={{ ...s.warn, marginTop: 12 }}>Recovery codes (one-time use):</p>
+                <ul style={s.ul}>
+                  {(setupData.recovery_codes || []).map((c, i) => (
+                    <li key={i}><code style={s.code}>{c}</code></li>
+                  ))}
+                </ul>
+                <div style={s.divider} />
+                <form onSubmit={handleVerify2fa}>
+                  <Field label="Enter the 6-digit code from your app to confirm">
+                    <input
+                      style={s.input}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      value={verifyCode}
+                      onChange={(e) => setVerifyCode(e.target.value)}
+                      required
+                      disabled={localLoading}
+                      autoFocus
+                    />
+                  </Field>
+                  <button style={s.btn} type="submit" disabled={localLoading}>
                     {localLoading && <Spinner />}
-                    {localLoading ? 'Loading…' : 'Enable 2FA'}
+                    {localLoading ? 'Verifying…' : 'Verify & Enable 2FA'}
                   </button>
-                </div>
-              )}
+                </form>
+              </div>
+            )}
+          </div>
+        )}
 
-              {setupData && (
-                <div>
-                  <p style={s.warn}>Save these now. They are shown only once.</p>
-                  {qrUrl && (
-                    <div style={{ textAlign: 'center', margin: '12px 0' }}>
-                      <img src={qrUrl} alt="Scan with your authenticator app" style={{ border: '4px solid #e2e8f0', borderRadius: 8 }} />
-                      <p style={s.small}>Scan this QR code with your authenticator app</p>
-                    </div>
-                  )}
-                  <p style={{ fontSize: 13 }}>
-                    <strong>Manual entry secret:</strong>{' '}
-                    <span style={s.code}>{setupData.secret}</span>
-                  </p>
-                  <p style={{ ...s.warn, marginTop: 12 }}>Recovery codes (one-time use):</p>
-                  <ul style={s.ul}>
-                    {(setupData.recovery_codes || []).map((c, i) => (
-                      <li key={i}><code style={s.code}>{c}</code></li>
-                    ))}
-                  </ul>
-                  <div style={s.divider} />
-                  <ErrorBox msg={localError} />
-                  <form onSubmit={handleVerify2fa}>
-                    <Field label="Enter the 6-digit code from your app to confirm">
-                      <input
-                        style={s.input}
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={6}
-                        value={verifyCode}
-                        onChange={(e) => setVerifyCode(e.target.value)}
-                        required
-                        disabled={localLoading}
-                        autoFocus
-                      />
-                    </Field>
-                    <button style={s.btn} type="submit" disabled={localLoading}>
-                      {localLoading && <Spinner />}
-                      {localLoading ? 'Verifying…' : 'Verify & Enable 2FA'}
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
-          )}
-
-          <ErrorBox msg={localError} />
-          <div style={s.divider} />
-          <button style={s.btnDng} onClick={handleLogout}>Logout</button>
+        {/* Main scan UI */}
+        <div style={{ marginTop: 16 }}>
+          <ScanPage />
         </div>
       </div>
     );

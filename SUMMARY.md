@@ -52,10 +52,16 @@ Why the 2 `verdict.test.js` tests fail: both use Daal Chawal + high_blood_pressu
 
 (These rows are from your latest run as you described it. I haven't re-run the live endpoints, because that needs the database and Groq keys.)
 
-## Not built yet
+## Done (scan flow)
 
-- Frontend scan flow: only the auth page exists (`App.jsx` is 12 lines). There are no UI pages for photo/name entry, condition choice, follow-up questions, the verdict screen or history.
-- Client helpers in `src/api.js` for `/dish/*`, `/verdict` and `/history`.
+- `src/pages/ScanPage.jsx`: full 4-step scan flow (condition → identify → confirm → questions → verdict) plus History tab.
+- `src/api.js`: added `identifyByName`, `identifyByPhoto` (FormData, no manual Content-Type), `getDishQuestions`, `submitVerdict`, `getHistory`. All append `?access_token=`.
+- `src/pages/AuthPage.jsx`: logged-in view now embeds `ScanPage` with a top bar; 2FA setup/verify preserved as a collapsible banner.
+- Photo downscale: canvas, max 1024 px, JPEG 0.85.
+- Verdict badge: Safe (green), Moderation (amber), Avoid (red); disclaimer always shown; `adjusted_for_safety` note.
+- 429 → "Too many requests, wait a minute."; 502 on identify → "AI is unavailable, please type the dish name.".
+
+## Not built yet
 - Module 7 follow-up that lets Test 3 return Safe.
 - Fixes to `dish.test.js`, `verdictHistory.test.js` and the 2 `verdict.test.js` tests so `npm test` is fully green.
 
