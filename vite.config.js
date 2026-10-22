@@ -14,6 +14,7 @@ export default defineConfig({
       '/me': 'http://localhost:3001',
       '/dish': 'http://localhost:3001',
       '/history': 'http://localhost:3001',
+      '/verdict': 'http://localhost:3001',
     },
   },
 });

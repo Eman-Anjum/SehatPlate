@@ -7,6 +7,7 @@ import authRouter, { requireAuth } from './auth.js';
 import twofaRouter from './twofa.js';
 import dishRouter from './dish.js';
 import historyRouter from './history.js';
+import verdictRouter from './verdictRoute.js';
 
 if (!process.env.SESSION_SECRET) {
   console.error('Error: SESSION_SECRET is not set. Add it in the Secrets panel.');
@@ -67,6 +68,7 @@ app.get('/me', requireAuth, async (req, res) => {
 
 app.use('/dish', dishRouter);
 app.use('/history', historyRouter);
+app.use('/verdict', verdictRouter);
 
 // 404 handler
 app.use((req, res) => {

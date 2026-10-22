@@ -18,9 +18,15 @@ AI food guide for Pakistani dishes. Users upload a photo or type a dish name, ch
 - GET /history: authenticated user's scans from the database, newest first, max 50 rows.
 - Vitest tests for /dish/questions and /history endpoints: known dish, alias matching, condition filtering, unknown dish with generateQuestions, AI failure fallback, bad condition returns 400.
 - Modules 2-4a: register, login, /me, 2FA endpoints and src/pages/AuthPage.jsx exist.
+- Module 7 Phase 1: `server/verdict.js` — pure-logic verdict engine (no Groq, no DB). Reads `dish_rules.json` for `min_verdict`, dish escalations (string + array answer matching), `common_escalations`, and applies a hard stricter-wins override chain. Confidence < 0.6 or any unanswered applicable question forces ≥ Moderation. Groq failure/invalid output falls back to rules reason + swaps (or generic cautious text for unlisted dishes). Forbidden medical language is stripped from AI-generated reason text. `server/verdictRoute.js` mounts a Phase 1 skeleton at POST /verdict (no Groq yet). Full Vitest coverage in `server/verdict.test.js`.
+
 ## Not built yet
 
-- verdict logic, full frontend scan flow integration.
+- Groq proposal integration for /verdict (Phase 2).
+- Zod validation + per-user rate limiter on /verdict (Phase 3).
+- Verdict response shaping and safety disclaimers (Phase 4).
+- Scan result persistence (Phase 5).
+- Full frontend scan flow integration.
 
 ## Gotchas
 
