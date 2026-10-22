@@ -97,4 +97,37 @@ router.post('/identify', requireAuth, limiter, handleUpload, async (req, res) =>
   }
 });
 
+router.post('/questions', requireAuth, limiter, async (req, res) => {
+  try {
+    const body = req.body || {};
+    const schema = z.object({ dish: nameSchema, condition: z.enum(['diabetes','kidney_disease','high_blood_pressure']) });
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) return res.status(400).json({ detail: parsed.error.errors.map(e=>e.message).join(', ') });
+    const { dish, condition } = parsed.data;
+    const key = dish.trim().toLowerCase();
+    // Known dish?
+    const canonical = knownNames.get(key);
+    if (canonical) {
+      const dishObj = rules.dishes.find((d) => d.name === canonical);
+      if (!dishObj) return res.json({ questions: rules.common_questions || [] });
+      const filtered = (dishObj.questions || []).filter(q => !q.conditions || q.conditions.includes(condition));
+      const questions = [...filtered, ...(rules.common_questions || [])];
+      return res.json({ questions });
+    }
+
+    // Unknown dish: ask AI and cache per (dish,condition)
+    const { generateQuestions } = await import('./ai.js');
+    try {
+      const qs = await generateQuestions(dish, condition);
+      return res.json({ questions: qs });
+    } catch (err) {
+      // On AI failure, fall back to common questions only
+      return res.json({ questions: rules.common_questions || [] });
+    }
+  } catch (err) {
+    console.error('/dish/questions error:', err && err.message);
+    return res.status(500).json({ detail: 'Something went wrong.' });
+  }
+});
+
 export default router;

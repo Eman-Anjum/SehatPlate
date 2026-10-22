@@ -14,10 +14,13 @@ AI food guide for Pakistani dishes. Users upload a photo or type a dish name, ch
 - Module 1: backend skeleton, health check, database pool, `users`/`scans` models via migration.
 - Module 5a: Groq AI layer (`identifyDish`, defensive parsing, retries) with Vitest tests; no routes.
 - Module 5b: POST /dish/identify (image via Groq or typed name via dish_rules.json, 10 req/min per user); npm test not run here (no shell), please run it.
-
+- POST /dish/questions: returns condition-aware follow-up questions (known dish filtered by condition + common_questions, or AI-generated for unknown dish with in-memory cache).
+- GET /history: authenticated user's scans from the database, newest first, max 50 rows.
+- Vitest tests for /dish/questions and /history endpoints: known dish, alias matching, condition filtering, unknown dish with generateQuestions, AI failure fallback, bad condition returns 400.
+- Modules 2-4a: register, login, /me, 2FA endpoints and src/pages/AuthPage.jsx exist.
 ## Not built yet
 
-- Module 4b (auth hardening), Module 5 (Groq AI layer and POST /dish/identify), follow-up questions, verdict logic, history endpoint, and full frontend scan flow.
+- verdict logic, full frontend scan flow integration.
 
 ## Gotchas
 

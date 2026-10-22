@@ -6,6 +6,7 @@ import { pool } from './db.js';
 import authRouter, { requireAuth } from './auth.js';
 import twofaRouter from './twofa.js';
 import dishRouter from './dish.js';
+import historyRouter from './history.js';
 
 if (!process.env.SESSION_SECRET) {
   console.error('Error: SESSION_SECRET is not set. Add it in the Secrets panel.');
@@ -65,6 +66,7 @@ app.get('/me', requireAuth, async (req, res) => {
 });
 
 app.use('/dish', dishRouter);
+app.use('/history', historyRouter);
 
 // 404 handler
 app.use((req, res) => {

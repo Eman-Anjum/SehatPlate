@@ -159,3 +159,51 @@ export async function identifyDish({ imageBuffer, mimeType, name } = {}) {
   }
   throw lastError;
 }
+
+// In-memory cache for generated questions per dish+condition
+const questionCache = new Map();
+
+const questionSchema = z.array(z.object({
+  id: z.string().trim().min(1),
+  text: z.string().trim().min(1),
+  options: z.array(z.object({ id: z.string().trim().min(1), label: z.string().trim().min(1) })).min(1),
+})).min(1).max(10);
+
+// generateQuestions: asks Groq for 3-4 short follow-up questions for a dish and condition
+export async function generateQuestions(dish, condition) {
+  const key = `${dish.trim().toLowerCase()}::${condition}`;
+  if (questionCache.has(key)) return questionCache.get(key);
+
+  const apiKey = process.env.GROQ_API_KEY;
+  const model = process.env.GROQ_TEXT_MODEL;
+  if (!apiKey || !model) {
+    throw new AIError(503, 'The AI service is not configured right now.');
+  }
+
+  const prompt = `You are a short questionnaire generator. For the Pakistani dish named "${dish}" and the health condition "${condition}", produce 3 short follow-up questions in JSON array form. Each question must have id, text, and options (each option has id and label). Keep questions concise and relevant (portion size, oil, potatoes, salt etc). Reply with JSON only.`;
+  const body = JSON.stringify({ model, temperature: 0, max_tokens: 300, messages: [ { role: 'system', content: 'Generate short questionnaire' }, { role: 'user', content: prompt } ] });
+  const request = { apiKey, body };
+
+  let lastErr;
+  for (let attempt=0; attempt<2; attempt++) {
+    let text;
+    try {
+      text = await callGroq(request);
+    } catch (err) {
+      lastErr = err;
+      continue;
+    }
+    // defensive: strip code fences and try to parse JSON arrays
+    const cleaned = String(text).replace(/<think>[\s\S]*?<\/think>/gi,' ').replace(/```(?:json)?/gi,' ');
+    try {
+      const parsed = JSON.parse(cleaned);
+      const validated = questionSchema.parse(parsed);
+      questionCache.set(key, validated);
+      return validated;
+    } catch (err) {
+      lastErr = err;
+      continue;
+    }
+  }
+  throw lastErr || new AIError(502, 'Failed to generate questions');
+}

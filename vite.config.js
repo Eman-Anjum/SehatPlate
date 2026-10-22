@@ -13,6 +13,7 @@ export default defineConfig({
       '/auth': 'http://localhost:3001',
       '/me': 'http://localhost:3001',
       '/dish': 'http://localhost:3001',
+      '/history': 'http://localhost:3001',
     },
   },
 });
