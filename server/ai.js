@@ -207,3 +207,72 @@ export async function generateQuestions(dish, condition) {
   }
   throw lastErr || new AIError(502, 'Failed to generate questions');
 }
+
+// --- Verdict proposal (POST /verdict) --------------------------------------
+// Reuses callGroq (single call, one 429 retry inside) and the defensive
+// jsonCandidates parser. Never logs keys or prompts.
+
+const proposalSchema = z.object({
+  verdict: z.enum(['Safe', 'Moderation', 'Avoid']),
+  reason: z.string().trim().min(1).max(600),
+  swaps: z.array(z.string().trim().min(1).max(120)).min(2).max(4),
+});
+
+const VERDICT_PROMPT =
+  'You are a cautious nutrition guide for Pakistani dishes. ' +
+  'Reply with JSON only, no other text: {"verdict": "Safe" | "Moderation" | "Avoid", "reason": string, "swaps": [string, ...]}. ' +
+  'Be conservative: when unsure, choose the stricter verdict. ' +
+  'The reason must be at most 2 short, simple sentences. ' +
+  'Give 2 to 4 short practical swaps. ' +
+  'Never give medication, dosage or diagnosis advice. No citations.';
+
+export function parseVerdictProposal(text) {
+  if (typeof text !== 'string' || !text.trim()) throw new AIError(502, UNUSABLE);
+  const cleaned = text
+    .replace(/<think>[\s\S]*?<\/think>/gi, ' ')
+    .replace(/```(?:json)?/gi, ' ');
+  for (const candidate of jsonCandidates(cleaned)) {
+    let value;
+    try {
+      value = JSON.parse(candidate);
+    } catch {
+      continue;
+    }
+    const parsed = proposalSchema.safeParse(value);
+    if (parsed.success) return parsed.data;
+  }
+  throw new AIError(502, UNUSABLE);
+}
+
+// One Groq call to the text model asking for the JSON verdict proposal.
+export async function proposeVerdict({ dish, condition, answersText = '', principle = '', dishRulesText = '' } = {}) {
+  const apiKey = process.env.GROQ_API_KEY;
+  const model = process.env.GROQ_TEXT_MODEL;
+  if (!apiKey || !model) {
+    throw new AIError(503, 'The AI service is not configured right now.');
+  }
+
+  const userPrompt = [
+    `Dish: ${dish}`,
+    `Health condition: ${condition}`,
+    principle ? `General principle for this condition: ${principle}` : null,
+    dishRulesText ? `Curated rules for this dish and condition: ${dishRulesText}` : null,
+    answersText ? `User answers:\n${answersText}` : 'User answers: none provided.',
+    'Now reply with the JSON verdict only.',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  const body = JSON.stringify({
+    model,
+    temperature: 0.2,
+    max_tokens: 300,
+    messages: [
+      { role: 'system', content: VERDICT_PROMPT },
+      { role: 'user', content: userPrompt },
+    ],
+  });
+
+  const text = await callGroq({ apiKey, body });
+  return parseVerdictProposal(text);
+}
