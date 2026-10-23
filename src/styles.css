@@ -212,14 +212,14 @@ button[style*="rgb(49, 130, 206)"] {
 button[style*="text-decoration: underline"] { color: var(--green-700) !important; }
 
 /* tabs (Scan / History): pills that stay visible on the teal background */
-div[style*="border-bottom: 2px solid rgb(226, 232, 240)"] { border-bottom: none !important; gap: 8px !important; padding-bottom: 12px; }
-div[style*="border-bottom: 2px solid rgb(226, 232, 240)"] > button {
+div[style*="border-bottom: 2px solid rgb(214, 227, 229)"] { border-bottom: none !important; gap: 8px !important; padding-bottom: 12px; }
+div[style*="border-bottom: 2px solid rgb(214, 227, 229)"] > button {
   color: #fff !important; background: rgba(255, 255, 255, 0.16) !important;
   border: 1px solid rgba(255, 255, 255, 0.5) !important; border-radius: 999px !important;
   margin-bottom: 0 !important; padding: 0 24px !important;
 }
-div[style*="border-bottom: 2px solid rgb(226, 232, 240)"] > button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.28) !important; }
-div[style*="border-bottom: 2px solid rgb(226, 232, 240)"] > button[style*="font-weight: 700"] {
+div[style*="border-bottom: 2px solid rgb(214, 227, 229)"] > button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.28) !important; }
+div[style*="border-bottom: 2px solid rgb(214, 227, 229)"] > button[style*="font-weight: 700"] {
   background: #fff !important; color: var(--green-700) !important; border-color: #fff !important;
   box-shadow: var(--shadow-1);
 }
