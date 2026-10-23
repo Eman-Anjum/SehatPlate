@@ -1,31 +1,50 @@
 # SehatPlate
 
-AI food guide for Pakistani dishes. The user picks a condition (diabetes, kidney disease, high blood pressure), uploads a photo or types a dish, answers follow-up questions, and gets a verdict (Safe / Moderation / Avoid) with reason, swaps and a medical disclaimer.
+AI food guide for Pakistani dishes. The user picks a condition (diabetes, kidney disease, high blood pressure), uploads a photo or types a dish, confirms the dish, answers follow-up questions, and gets a verdict (Safe / Moderation / Avoid) with a reason, healthier swaps and a medical disclaimer. Guidance only, not medical advice.
 
 ## Stack
 
-- Frontend: React + Vite. Backend: Node.js + Express (`server/`), Zod, JWT + bcryptjs, TOTP 2FA, multer.
-- Database: PostgreSQL via platform migrations (`db/migrations/`).
-- AI: Groq, called only from `server/ai.js`. Secrets: `GROQ_API_KEY`, `GROQ_TEXT_MODEL`, `GROQ_VISION_MODEL` (`qwen/qwen3.8-27b`).
-- Rules: `server/dish_rules.json` (10 dishes, 3 conditions, common questions and escalations).
-- Tests: Vitest + supertest, Groq mocked.
+- Frontend: React 18 + Vite 4, React Router. All requests go through `src/api.js` (relative URLs only).
+- Backend: Node.js + Express (`server/`), Zod validation, JWT (HS256) + bcryptjs, TOTP 2FA (otplib, qrcode), multer, helmet, cors, express-rate-limit.
+- Database: PostgreSQL (`users`, `scans`), schema only through `db/migrations/`.
+- AI: Groq, called only from `server/ai.js`. Env: `GROQ_API_KEY`, `GROQ_TEXT_MODEL`, `GROQ_VISION_MODEL`.
+- Rules: `server/dish_rules.json` (10 dishes x 3 conditions, common questions, escalations).
+- Tests: Vitest + supertest with Groq mocked (51 test cases in 5 files: `ai`, `dish`, `verdict`, `verdictRoute`, `verdictHistory`).
 
-## Done (everything below is tested and working in the preview)
+## Done
 
-- Auth: register, login, `/me`, 2FA (TOTP + recovery codes), `src/pages/AuthPage.jsx`, `src/hooks/useAuth.js`, `src/api.js`.
-- `POST /dish/identify` (photo via Groq, typed name matched locally) and `POST /dish/questions` (saved or AI-generated questions), 10 req/min per user.
-- `POST /verdict`: Zod validation, 10 req/min per user, one Groq proposal, then the safety override in `server/verdict.js` (rules floor, escalations, confidence below 0.6 or unanswered question gives at least Moderation, the strictest result wins, so Groq can never go softer than the rules). Saves each scan with its answers. If Groq fails, it falls back to the rules.
-- `GET /history`: the user's scans, newest first, max 50.
-- Frontend: `src/pages/ScanPage.jsx` (condition, identify, confirm, questions, verdict badge, disclaimer, History tab) embedded in `AuthPage`, with 2FA setup kept.
-- Safe is possible only where the rules floor is `null` (9 of 30 dish and condition pairs) and needs all questions answered, no escalating answer, confidence 0.6 or more, and a Groq proposal of Safe.
+### Backend
+- **Auth** (`server/auth.js`): `POST /auth/register`, `POST /auth/login`, `GET /me`. Login returns `{access_token}`, or `{requires_2fa, temp_token}` (5 min) when 2FA is on. `/auth` login and register are limited to 20 requests per 15 min per IP.
+- **2FA** (`server/twofa.js`): `POST /auth/2fa/setup` (secret, `otpauth_uri`, 8 recovery codes, shown once), `/auth/2fa/verify`, `/auth/2fa/login` (TOTP or single-use recovery code). Failed 2FA logins are locked out after 5 attempts per 10 min per user (in memory).
+- **Dish** (`server/dish.js`): `POST /dish/identify` (photo via Groq vision, typed name matched locally against the rules) and `POST /dish/questions` (questions from the rules, or Groq-generated and cached per dish and condition). Uploads: jpeg/png/webp, max 5 MB. 10 requests per min per user.
+- **Verdict** (`server/verdict.js`, `server/verdictRoute.js`): `POST /verdict` validates the body, asks Groq for one proposal, then applies the safety override. The strictest result wins, so Groq can never go softer than the rules:
+  - the rules floor (`min_verdict`) for that dish and condition;
+  - escalating answers;
+  - confidence below 0.6 or any unanswered question gives at least Moderation;
+  - invalid Groq output or a Groq failure falls back to the rules floor, else Moderation.
+
+  Each scan is saved with its answers. Safe is possible only where the rules floor is `null` (9 of 30 dish and condition pairs) and requires all questions answered, no escalating answer, confidence 0.6 or more, and a Groq proposal of Safe. 10 requests per min per user.
+- **History** (`server/history.js`): `GET /history` returns the user's own scans, newest first, max 50.
+
+### Frontend
+- `src/pages/AuthPage.jsx`: sign in / register, 2FA login step (TOTP or recovery code), logged-in top bar, 2FA setup (QR, secret, recovery codes, confirm code), logout. Embeds `ScanPage` after login.
+- `src/pages/ScanPage.jsx`: Scan tab (condition, dish name or photo with client-side downscale to 1024 px, confirm or edit the dish guess, questions, verdict badge, reason, swaps, disclaimer) and History tab.
+- `src/hooks/useAuth.js` and `src/api.js`: token handling and API calls, including the 429 and 502 messages.
+- **Theme:** teal and red palette (primary `#208f84`, danger `#dd2d4a`, text `#0f3d3a` / `#14262b`, muted `#5b6f73`, lines `#d6e3e5`, tints `#e3f3f1`). Only colors changed; no logic or layout changed. Verdict badge, error and success colors (green, amber, red) are intentionally unchanged.
+- `src/styles.css`: a light design layer over the inline styles (teal page background, rounded cards and buttons, sticky top bar, pill tabs, pill badges, `spin` keyframes).
+
+## Known issues in the current snapshot
+
+1. `server/register.js` duplicates the register route in `auth.js` and is not mounted in `server/index.js`. `backend/` (FastAPI) is an unused leftover; the live backend is `server/`.
 
 ## Next steps
 
-1. Rate limit `/auth/2fa/login`, `/auth/2fa/verify`, `/auth/2fa/setup` (the limiter in `server/index.js` covers only login and register).
-2. Upgrade `multer` 1.x to 2.x, then retest photo scans.
-3. Medical review of `dish_rules.json`; then add more dishes, one small insert at a time.
-4. Password reset flow; privacy and terms text.
-5. Publish with the platform's publish option and test with the real secrets.
+1. Rate limit `/auth/2fa/setup` and `/auth/2fa/verify` (only the 2FA login has a failed-attempt lockout).
+2. Fix the issues above: one `styles.css`, finish the color swap in the two pages.
+3. Upgrade `multer` 1.x to 2.x, then retest photo scans.
+4. Medical review of `dish_rules.json`; then add more dishes, one small insert at a time.
+5. Password reset flow; privacy and terms text.
+6. Publish and test with the real secrets.
 
 ## Gotchas
 
@@ -36,5 +55,5 @@ AI food guide for Pakistani dishes. The user picks a condition (diabetes, kidney
 - Never rewrite `server/dish_rules.json`; make one small edit at a time.
 - Do not edit or delete files in `db/migrations`. Migrations are applied only by a build.
 - Groq retires models: a deprecated model id in a secret makes every Groq call fail and verdicts fall back to Moderation. Qwen 3.x models think first, so send `reasoning_effort: "none"` for `qwen/` models only.
+- `styles.css` finds elements by their inline colors (as `rgb(...)`), so when you change a color in the JSX, update the matching selector too.
 - Keep the 2FA setup screen when editing `AuthPage.jsx`.
-- `backend/` is an unused leftover; the live backend is `server/`.
