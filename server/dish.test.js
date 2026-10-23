@@ -40,7 +40,7 @@ describe('/dish/questions', () => {
   });
 
   it('unknown dish uses generateQuestions and caches result', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async ()=>({ choices:[{ message:{ content: JSON.stringify([{id:'q1',text:'How big?',options:[{id:'a',label:'A'}]}]) }] }) });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async ()=>({ choices:[{ message:{ content: JSON.stringify([{id:'q1',text:'How big?',options:[{id:'a',label:'A'}]}]) } }] }) });
     vi.stubGlobal('fetch', fetchMock);
     const res1 = await request(app).post('/dish/questions').send({ dish: 'Some New Dish', condition: 'diabetes' });
     expect(res1.status).toBe(200);
