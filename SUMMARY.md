@@ -34,8 +34,15 @@ AI food guide for Pakistani dishes. The user picks a condition (diabetes, kidney
 - `src/styles.css`: a light design layer over the inline styles (teal page background, rounded cards and buttons, sticky top bar, pill tabs, pill badges, `spin` keyframes).
 
 ## Known issues in the current snapshot
+- No clear history button. The History tab can only list and refresh. It needs three small pieces: DELETE /history in server/history.js (delete the signed-in user's scans only), clearHistory() in src/api.js, and a Clear button with a confirm in HistoryTab (ScanPage.jsx) that reloads the list. Add a test in server/verdictHistory.test.js.
+- 2FA setup and verify have no rate limit. Only the 2FA login has the failed-attempt lockout.
+- multer is on 1.x. Upgrade to 2.x, then retest photo scans.
+- dish_rules.json has no medical review. The rules are not clinically validated; the app must stay conservative and keep the disclaimer.
+- Tests not rerun after the styling changes. Run npm test and click through one full scan (condition, photo and typed name, questions, verdict, history, 2FA setup) before publishing.
+- No password reset, privacy or terms text.
+- Unused leftovers: server/register.js duplicates the register route and is not mounted; backend/ (FastAPI) is not used. The live backend is server/.
+- Fragile style hooks: styles.css finds some elements by an inline value (for example the card's border-radius: 20px and the badge background colors), so changing those values in the JSX breaks the matching rule.
 
-1. `server/register.js` duplicates the register route in `auth.js` and is not mounted in `server/index.js`. `backend/` (FastAPI) is an unused leftover; the live backend is `server/`.
 
 ## Next steps
 
