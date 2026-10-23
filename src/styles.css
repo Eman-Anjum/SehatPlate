@@ -1,0 +1,356 @@
+/* SehatPlate design layer: teal, red accent and food pattern.*/
+:root {
+  --bg: #537f88;
+  --green-900: #0f3d3a;
+  --green-700: #208f84;
+  --green-100: #e3f3f1;
+  --accent: #dd2d4a;
+  --line: #d6e3e5;
+  --radius: 14px;
+  --shadow: 0 4px 10px rgba(15, 61, 58, 0.10), 0 14px 34px rgba(15, 61, 58, 0.16);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: #14262b;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* font (the pages set fontFamily inline) */
+#root div[style*="system-ui"] { font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important; }
+h1 { text-align: center; font-size: 32px !important; }
+h1 + p { text-align: center; }
+
+/* cards */
+#root div[style*="border-radius: 10px"][style*="padding"] {
+  border-radius: 20px !important;
+  box-shadow: var(--shadow);
+}
+
+/* top bar */
+#root div[style*="padding: 10px 20px"] { position: sticky; top: 0; z-index: 40; }
+
+/* buttons */
+button { font-family: inherit; min-height: 44px; }
+button:disabled { opacity: 0.6; cursor: not-allowed !important; }
+button:focus-visible, input:focus-visible { outline: 3px solid rgba(32, 143, 132, 0.45); outline-offset: 2px; }
+
+button[style*="rgb(32, 143, 132)"][style*="color: rgb(255, 255, 255)"] { border-radius: var(--radius) !important; min-height: 48px; }
+button[style*="rgb(227, 243, 241)"] { border-radius: var(--radius) !important; }
+
+/* logout (#dd2d4a): compact outline button */
+button[style*="rgb(221, 45, 74)"] {
+  width: auto !important; margin-top: 0 !important; padding: 0 16px !important;
+  background: #fff !important; color: var(--accent) !important;
+  border: 1px solid var(--accent) !important; border-radius: var(--radius) !important;
+}
+
+/* tabs: pills that stay readable on the teal background */
+div[style*="border-bottom: 2px solid rgb(214, 227, 229)"] { border-bottom: none !important; gap: 8px !important; padding-bottom: 12px; }
+div[style*="border-bottom: 2px solid rgb(214, 227, 229)"] > button {
+  color: #fff !important; background: rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important; border-radius: 999px;
+  margin-bottom: 0 !important; padding: 0 24px !important;
+}
+div[style*="border-bottom: 2px solid rgb(214, 227, 229)"] > button[style*="font-weight: 700"] {
+  background: #fff !important; color: var(--green-700) !important; border-color: #fff !important;
+}
+
+/* forms */
+input[type="text"], input[type="email"], input[type="password"] { min-height: 48px; border-radius: var(--radius) !important; }
+input[type="radio"] { accent-color: var(--green-700); }
+
+/* badges */
+span[style*="border-radius: 20px"] { border-radius: 999px !important; }
+
+/* spinner used by the JSX */
+@keyframes spin { to { transform: rotate(360deg); } }
+:root {
+  --bg: #537f88;
+  --green-900: #0f3d3a;
+  --green-700: #208f84;
+  --green-500: #2bb0a3;
+  --green-100: #e3f3f1;
+  --accent: #dd2d4a;
+  --saffron: #e8a317;
+  --saffron-100: #fdf1d6;
+  --ink: #14262b;
+  --muted: #5b6f73;
+  --line: #d6e3e5;
+  --safe: #2e9e5b;
+  --moderate: #e8a317;
+  --avoid: #d64545;
+  --safe-bg: #e6f5ec;
+  --moderate-bg: #fdf1d6;
+  --avoid-bg: #fbe7e7;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow-1: 0 2px 6px rgba(15, 61, 58, 0.08), 0 6px 18px rgba(15, 61, 58, 0.08);
+  --shadow-2: 0 4px 10px rgba(15, 61, 58, 0.10), 0 14px 34px rgba(15, 61, 58, 0.16);
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+/* food pattern (bowl, chili, lemon, spoon and fork, leaf) over two soft glows */
+body {
+  min-height: 100vh;
+  font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--ink);
+  background-color: var(--bg);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' opacity='0.22'%3E%3Cg transform='rotate(-12 28 32)'%3E%3Cpath d='M10 32h36c0 10-8 16-18 16S10 42 10 32z'/%3E%3Cpath d='M20 52h16'/%3E%3Cpath d='M22 26c-3-4 3-6 0-10M32 26c-3-4 3-6 0-10'/%3E%3C/g%3E%3Cg transform='rotate(25 82 32)'%3E%3Cpath d='M72 18c12-2 22 8 18 24-1 4-3 7-6 9 1-9-3-16-12-21z'/%3E%3Cpath d='M72 18l-3-5'/%3E%3C/g%3E%3Cg transform='rotate(10 30 92)'%3E%3Ccircle cx='30' cy='92' r='14'/%3E%3Ccircle cx='30' cy='92' r='9'/%3E%3Cpath d='M30 83v18M21 92h18M24 86l12 12M36 86L24 98'/%3E%3C/g%3E%3Cg transform='rotate(-20 88 92)'%3E%3Cellipse cx='80' cy='84' rx='5' ry='8'/%3E%3Cpath d='M80 92v20'/%3E%3Cpath d='M96 76v12M101 76v12M106 76v12M96 88c0 4 10 4 10 0M101 92v20'/%3E%3C/g%3E%3Cg transform='rotate(35 62 62)'%3E%3Cpath d='M54 66c6-10 18-10 22-2-7 8-17 9-22 2z'/%3E%3Cpath d='M54 66l-5 6'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(circle at 100% 0%, rgba(221, 45, 74, 0.25), transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(32, 143, 132, 0.5), transparent 50%);
+  background-size: 120px 120px, cover, cover;
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1.5;
+}
+
+/* the pages set fontFamily inline, so re-point it at the design font */
+#root div[style*="system-ui"] { font-family: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif !important; }
+
+/* ── headings ── */
+h1, h2, h3, em { font-family: "Fraunces", Georgia, serif; }
+h1, h2, h3 { color: var(--green-900) !important; }
+h1 { text-align: center; font-size: 32px !important; letter-spacing: -0.01em; }
+h2::after { content: ""; display: block; width: 36px; height: 3px; margin-top: 6px; border-radius: 3px; background: var(--accent); }
+em { font-style: normal; color: var(--green-700); }
+
+/* logo tile above the SehatPlate title (sign-in and 2FA screens) */
+h1::before {
+  content: ""; display: block; width: 64px; height: 64px; margin: 4px auto 12px;
+  border-radius: 18px; box-shadow: var(--shadow-1);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 17h24a12 9 0 0 1-12 9 12 9 0 0 1-12-9z' fill='white'/%3E%3Cpath d='M16 4c4 2.5 5.5 6 5.5 8.5A5.5 5.5 0 0 1 16 16a5.5 5.5 0 0 1-5.5-3.5C10.5 10 12 6.5 16 4z' fill='%23dd2d4a'/%3E%3C/svg%3E") center / 38px no-repeat,
+    linear-gradient(160deg, var(--green-700), var(--green-500));
+}
+h1 + p { text-align: center; }
+h1 + p::after {
+  content: "Snap a dish · Pick your condition · Get a clear verdict";
+  display: block; margin-top: 10px; padding: 6px 12px; border-radius: 999px;
+  background: var(--green-100); color: var(--green-900); font-weight: 600; font-size: 12px;
+}
+
+/* ── page + cards ── */
+#root > div { animation: fadeUp 250ms ease both; }
+#root div[style*="border-radius: 10px"][style*="padding"] {
+  position: relative; overflow: hidden;
+  border-radius: var(--radius-lg) !important;
+  border-color: var(--line) !important;
+  box-shadow: var(--shadow-2);
+}
+#root div[style*="border-radius: 10px"][style*="padding"]::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
+  background: linear-gradient(90deg, var(--green-700), var(--accent));
+}
+#root div[style*="max-width: 440px"] { max-width: 460px !important; }
+#root div[style*="max-width: 520px"] { max-width: 560px !important; }
+
+/* ── top bar (logged-in view) ── */
+#root div[style*="padding: 10px 20px"] {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-bottom-color: var(--line) !important;
+}
+
+/* ── buttons ── */
+button {
+  font-family: inherit;
+  min-height: 44px;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease, background 180ms ease;
+}
+button:disabled { opacity: 0.6; cursor: not-allowed !important; }
+button:focus-visible, input:focus-visible, label:focus-within {
+  outline: 3px solid rgba(43, 176, 163, 0.45);
+  outline-offset: 2px;
+}
+
+/* primary */
+button[style*="rgb(56, 161, 105)"][style*="color: rgb(255, 255, 255)"] {
+  background: linear-gradient(180deg, var(--green-500), var(--green-700)) !important;
+  border-radius: var(--radius) !important;
+  min-height: 48px;
+  font-weight: 700;
+  box-shadow: var(--shadow-1);
+}
+button[style*="rgb(56, 161, 105)"][style*="color: rgb(255, 255, 255)"]:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+button[style*="rgb(56, 161, 105)"][style*="color: rgb(255, 255, 255)"]:active:not(:disabled) { transform: translateY(0); }
+
+/* secondary */
+button[style*="rgb(237, 242, 247)"] {
+  background: #fff !important; color: var(--ink) !important;
+  border: 1px solid var(--line) !important; border-radius: var(--radius) !important;
+}
+button[style*="rgb(237, 242, 247)"]:hover:not(:disabled) { background: var(--green-100) !important; }
+
+/* danger (logout) */
+button[style*="rgb(229, 62, 62)"] {
+  width: auto !important; margin-top: 0 !important; padding: 0 16px !important;
+  background: #fff !important; color: var(--accent) !important;
+  border: 1px solid var(--accent) !important; border-radius: var(--radius) !important;
+}
+button[style*="rgb(229, 62, 62)"]:hover:not(:disabled) { background: var(--avoid-bg) !important; }
+
+/* "Enable 2FA" */
+button[style*="rgb(49, 130, 206)"] {
+  background: var(--green-100) !important; color: var(--green-900) !important;
+  border: 1px solid var(--line) !important; border-radius: var(--radius) !important;
+}
+
+/* link buttons */
+button[style*="text-decoration: underline"] { color: var(--green-700) !important; }
+
+/* tabs (Scan / History): pills that stay visible on the teal background */
+div[style*="border-bottom: 2px solid rgb(226, 232, 240)"] { border-bottom: none !important; gap: 8px !important; padding-bottom: 12px; }
+div[style*="border-bottom: 2px solid rgb(226, 232, 240)"] > button {
+  color: #fff !important; background: rgba(255, 255, 255, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important; border-radius: 999px !important;
+  margin-bottom: 0 !important; padding: 0 24px !important;
+}
+div[style*="border-bottom: 2px solid rgb(226, 232, 240)"] > button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.28) !important; }
+div[style*="border-bottom: 2px solid rgb(226, 232, 240)"] > button[style*="font-weight: 700"] {
+  background: #fff !important; color: var(--green-700) !important; border-color: #fff !important;
+  box-shadow: var(--shadow-1);
+}
+
+/* ── forms ── */
+label { color: var(--green-900) !important; }
+input[type="text"], input[type="email"], input[type="password"] {
+  min-height: 48px;
+  font-size: 16px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius) !important;
+  color: var(--ink);
+  background: #fff;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+  border-color: var(--green-500) !important;
+  box-shadow: 0 0 0 3px rgba(43, 176, 163, 0.3);
+  outline: none !important;
+}
+input[type="radio"] { accent-color: var(--green-700); width: 20px; height: 20px; }
+label:has(> input[type="radio"]) { min-height: 44px; }
+img { max-width: 100%; }
+
+/* photo picker as a dashed drop-zone */
+input[type="file"] {
+  display: block; width: 100%; max-width: 100%; padding: 22px 14px;
+  font: inherit; font-size: 14px; color: var(--muted); cursor: pointer;
+  border: 2px dashed #b9d3d3; border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(32, 143, 132, 0.07), transparent);
+}
+input[type="file"]:hover { border-color: var(--green-700); background: var(--green-100); }
+input[type="file"]::file-selector-button {
+  margin-right: 12px; min-height: 40px; padding: 0 16px; border: none; border-radius: 10px;
+  background: var(--green-700); color: #fff; font: inherit; font-weight: 700; cursor: pointer;
+}
+
+/* condition choices become three selectable cards */
+div:has(> label > input[name="condition"]) { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+div:has(> label > input[name="condition"]) > span { grid-column: 1 / -1; }
+label:has(> input[name="condition"]) {
+  position: relative; flex-direction: column; justify-content: center; text-align: center;
+  min-height: 104px; margin: 0 !important; padding: 12px 6px;
+  background: #fff; border: 2px solid var(--line); border-radius: var(--radius);
+  font-weight: 700; font-size: 14px !important; cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+label:has(> input[name="condition"]):hover { transform: translateY(-2px); box-shadow: var(--shadow-1); }
+label:has(> input[name="condition"]) input { position: absolute; opacity: 0; pointer-events: none; }
+label:has(> input[name="condition"]:checked) { border-color: var(--green-700); background: var(--green-100); box-shadow: var(--shadow-1); }
+label:has(> input[name="condition"]:checked)::after {
+  content: "✓"; position: absolute; top: 6px; right: 8px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--green-700); color: #fff; font-size: 12px; line-height: 20px;
+}
+label:has(> input[value="diabetes"])::before            { content: "🩸"; font-size: 26px; }
+label:has(> input[value="kidney_disease"])::before      { content: "🫘"; font-size: 26px; }
+label:has(> input[value="high_blood_pressure"])::before { content: "❤️"; font-size: 26px; }
+
+/* question answers become pills */
+label:has(> input[type="radio"]:not([name="condition"])) {
+  display: inline-flex !important; margin: 0 8px 8px 0 !important; padding: 0 16px;
+  border: 1px solid var(--line); border-radius: 999px; background: #fff;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+label:has(> input[type="radio"]:not([name="condition"])) input { position: absolute; opacity: 0; pointer-events: none; }
+label:has(> input[type="radio"]:not([name="condition"])):hover { border-color: var(--green-700); }
+label:has(> input[type="radio"]:not([name="condition"]):checked) { background: var(--green-700); border-color: var(--green-700); color: #fff !important; font-weight: 700; }
+
+/* ── alerts ── */
+div[role="alert"] {
+  background: var(--avoid-bg) !important; border-color: #efc4c4 !important;
+  color: #8f2a2a !important; border-radius: var(--radius) !important;
+}
+#root div[style*="rgb(240, 255, 244)"] {
+  background: var(--safe-bg) !important; border-color: #b9e0c6 !important;
+  color: #1d6b3d !important; border-radius: var(--radius) !important;
+}
+#root div[style*="rgb(235, 248, 255)"] {
+  background: var(--green-100) !important; border-color: #b9dcd8 !important;
+  color: var(--green-900) !important; border-radius: var(--radius) !important;
+}
+
+/* ── verdict badges (history and result) ── */
+span[style*="border-radius: 20px"] { border-radius: 999px !important; padding: 6px 16px !important; font-size: 15px !important; }
+span[style*="rgb(198, 246, 213)"] { background: var(--safe-bg) !important; color: #1d6b3d !important; }
+span[style*="rgb(254, 252, 191)"] { background: var(--moderate-bg) !important; color: #7a5200 !important; }
+span[style*="rgb(254, 215, 215)"] { background: var(--avoid-bg) !important; color: #8f2a2a !important; }
+span[style*="rgb(198, 246, 213)"]::before { content: "✓ "; }
+span[style*="rgb(254, 252, 191)"]::before { content: "! "; }
+span[style*="rgb(254, 215, 215)"]::before { content: "✕ "; }
+
+/* ── swaps and disclaimer ── */
+ul[style*="font-size: 14px"] { list-style: none; padding: 0 !important; display: flex; flex-wrap: wrap; gap: 8px; }
+ul[style*="font-size: 14px"] li { padding: 7px 12px; border-radius: 999px; background: var(--green-100); border: 1px solid #b9dcd8; color: var(--green-900); }
+p[style*="font-style: italic"] {
+  position: relative; padding: 12px 14px 12px 40px;
+  border: 1px solid var(--line); border-radius: var(--radius); background: #f7fbfa;
+  color: var(--muted) !important; font-style: normal !important;
+}
+p[style*="font-style: italic"]::before {
+  content: "i"; position: absolute; left: 12px; top: 12px; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--green-700); color: #fff; font: 700 12px/18px Georgia, serif; text-align: center;
+}
+
+/* ── history rows become cards ── */
+div[style*="padding: 14px 0"] {
+  padding: 14px !important; margin-bottom: 10px; background: #fff;
+  border: 1px solid var(--line) !important; border-radius: var(--radius);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+div[style*="padding: 14px 0"]:hover { transform: translateY(-2px); box-shadow: var(--shadow-1); }
+
+/* ── misc ── */
+span[style*="monospace"], code { background: var(--green-100) !important; border-radius: 6px !important; }
+p[style*="rgb(192, 86, 33)"] { color: #7a5200 !important; background: var(--saffron-100); padding: 8px 12px; border-radius: var(--radius); }
+div[style*="border-top: 1px solid rgb(226, 232, 240)"] { border-color: var(--line) !important; }
+
+/* ── motion ── */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  span[style*="spin"] { animation: spin 1.4s linear infinite !important; }
+}
+
+/* ── small screens ── */
+@media (max-width: 560px) {
+  #root div[style*="padding: 28px 32px"], #root div[style*="padding: 24px 28px"] { padding: 18px !important; }
+  #root div[style*="padding: 10px 20px"] { padding: 8px 12px !important; }
+  #root div[style*="padding: 10px 20px"] span[style*="margin-left: 12px"] { display: none; }
+  div:has(> label > input[name="condition"]) { grid-template-columns: 1fr; }
+  label:has(> input[name="condition"]) { flex-direction: row; justify-content: flex-start; min-height: 60px; padding: 8px 14px; text-align: left; }
+}

@@ -4,35 +4,36 @@ import { getHealth } from '../api';
 import ScanPage from './ScanPage';
 
 /* ── tiny inline styles ─────────────────────────────────────────── */
+
 const s = {
   page:    { maxWidth: 440, margin: '40px auto', padding: '0 16px', fontFamily: 'system-ui, sans-serif' },
-  card:    { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '28px 32px' },
-  title:   { margin: '0 0 4px', fontSize: 26, fontWeight: 700, color: '#1a202c' },
-  sub:     { margin: '0 0 24px', fontSize: 13, color: '#718096' },
-  label:   { display: 'block', fontSize: 13, fontWeight: 600, color: '#4a5568', marginBottom: 4 },
-  input:   { width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1px solid #cbd5e0',
+  card:    { background: '#fff', border: '1px solid #d6e3e5', borderRadius: 10, padding: '28px 32px' },
+  title:   { margin: '0 0 4px', fontSize: 26, fontWeight: 700, color: '#0f3d3a' },
+  sub:     { margin: '0 0 24px', fontSize: 13, color: '#5b6f73' },
+  label:   { display: 'block', fontSize: 13, fontWeight: 600, color: '#0f3d3a', marginBottom: 4 },
+  input:   { width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1px solid #c3d6d8',
              borderRadius: 6, fontSize: 14, outline: 'none' },
-  btn:     { width: '100%', padding: '10px 0', background: '#38a169', color: '#fff', border: 'none',
+  btn:     { width: '100%', padding: '10px 0', background: '#208f84', color: '#fff', border: 'none',
              borderRadius: 6, fontSize: 15, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
-  btnSec:  { background: 'none', border: 'none', color: '#38a169', cursor: 'pointer',
+  btnSec:  { background: 'none', border: 'none', color: '#208f84', cursor: 'pointer',
              fontSize: 13, padding: 0, textDecoration: 'underline' },
-  btnDng:  { width: '100%', padding: '9px 0', background: '#e53e3e', color: '#fff', border: 'none',
+  btnDng:  { width: '100%', padding: '9px 0', background: '#dd2d4a', color: '#fff', border: 'none',
              borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
   err:     { background: '#fff5f5', border: '1px solid #feb2b2', borderRadius: 6,
              padding: '10px 12px', color: '#c53030', fontSize: 13, marginBottom: 12 },
   ok:      { background: '#f0fff4', border: '1px solid #9ae6b4', borderRadius: 6,
              padding: '10px 12px', color: '#276749', fontSize: 13, marginBottom: 12 },
-  hint:    { fontSize: 12, color: '#718096', marginTop: 16, textAlign: 'center' },
+  hint:    { fontSize: 12, color: '#5b6f73', marginTop: 16, textAlign: 'center' },
   field:   { marginBottom: 14 },
   row:     { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
-  code:    { fontFamily: 'monospace', background: '#edf2f7', padding: '2px 6px', borderRadius: 4 },
+  code:    { fontFamily: 'monospace', background: '#e3f3f1', padding: '2px 6px', borderRadius: 4 },
   ul:      { paddingLeft: 20, margin: '8px 0' },
   warn:    { color: '#c05621', fontWeight: 600, fontSize: 13 },
   spinner: { display: 'inline-block', width: 14, height: 14, border: '2px solid #fff',
              borderTop: '2px solid transparent', borderRadius: '50%',
              animation: 'spin 0.7s linear infinite', marginRight: 6 },
-  divider: { borderTop: '1px solid #e2e8f0', margin: '20px 0' },
-  small:   { fontSize: 12, color: '#a0aec0' },
+  divider: { borderTop: '1px solid #d6e3e5', margin: '20px 0' },
+  small:   { fontSize: 12, color: '#5b6f73' },
 };
 
 /* ── helpers ─────────────────────────────────────────────────────── */
